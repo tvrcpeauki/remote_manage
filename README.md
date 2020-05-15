@@ -6,11 +6,11 @@
 3.支持远程web访问  
   
 计划项目结构  
+document/   文档说明(仅简单说明，设计思路参考下面链接)  
 kernal_mod/ 内核驱动模块说明或者实现  
 lower_app/  下位机代码实现  
-upper_app/  上位机代码实现  
 test/       测试代码  
-document/   文档说明(仅简单说明，设计思路参考下面链接)  
+upper_app/  上位机代码实现  
 
 相关的设计资料说明参考  
 https://www.cnblogs.com/zc110747/p/12747213.html    
