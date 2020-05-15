@@ -43,6 +43,7 @@ void led_convert(uint8_t work)
     int fd;
     uint8_t val;
 
+    USR_DEBUG("led write:%d\n", work);
     fd = open(LED_DEVICE, O_RDWR | O_NDELAY);
     if(fd != -1)
     {

@@ -31,6 +31,11 @@
 #define __DEBUG_PRINTF			1
 #define __SYSTEM_DEBUG          0
 
+/*返回状态*/
+#define RT_OK               	0x00
+#define RT_FAIL             	0x01
+#define RT_EMPTY            	0x02
+
 /**************************************************************************
 * Global Type Definition
 ***************************************************************************/

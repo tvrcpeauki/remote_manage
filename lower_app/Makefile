@@ -1,4 +1,4 @@
-Object=main.o app_task.o uart_task.o led.o
+Object=main.o app_task.o uart_task.o led.o protocol.o
 CPPFLAG=
 CLIBFLAG=-lpthread
 CC=arm-linux-gnueabihf-g++
@@ -19,6 +19,9 @@ uart_task.o:uart_task.cpp
 
 led.o:driver/led.cpp
 	$(CC) $(CPPFLAG) -c driver/led.cpp
+
+protocol.o:protocol.cpp
+	$(CC) $(CPPFLAG) -c protocol.cpp
 
 .PHYONE: clean
 clean:

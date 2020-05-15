@@ -1,45 +1,49 @@
-/* 
- * File      : app_task.h
- * This file is application task interface
+/*
+ * File      : uart_task.h
+ * This file is uart task interface
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:
  * Date           Author       Notes
- * 2020-5-4      zc            the first version
+ * 2020-5-4      zc           the first version
  */
 
 /**
  * @addtogroup IMX6ULL
  */
 /*@{*/
-#ifndef _INCLUDE_APP_TASK_H
-#define _INCLUDE_APP_TASK_H
+#ifndef _INCLUDE_UART_TASK_H
+#define _INCLUDE_UART_TASK_H
 
 /***************************************************************************
 * Include Header Files
 ***************************************************************************/
-#include <pthread.h>
 #include "typedef.h"
+#include "protocol.h"
 
 /**************************************************************************
 * Global Macro Definition
 ***************************************************************************/
-#define REG_NUM  256
 
+#define BUFFER_SIZE     		1200
 /**************************************************************************
 * Global Type Definition
 ***************************************************************************/
-class app_reg
+class uart_protocol_info:public protocol_info
 {
 public:
-    app_reg(void);
-        ~app_reg();
-    uint16_t get_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *pstart);
-    void set_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *pstart);
-    void hardware_refresh(void);
-private:
-    uint8_t reg[REG_NUM];
-    pthread_mutex_t reg_mutex; /*数据读取都要执行该锁*/
+	uart_protocol_info(uint8_t *p_rx, uint8_t *p_tx, uint8_t *p_rxd, uint16_t max_bs):
+		protocol_info(p_rx, p_tx, p_rxd, max_bs){
+
+	}
+	~uart_protocol_info(){}
+
+	int device_read(int fd, uint8_t *ptr, uint16_t size){
+		return read(fd, ptr, size);
+	}
+	int device_write(int fd, uint8_t *ptr, uint16_t size){
+		return write(fd, ptr, size);
+	}
 };
 
 /**************************************************************************
@@ -49,8 +53,7 @@ private:
 /**************************************************************************
 * Global Functon Declaration
 ***************************************************************************/
-void app_init(void);
-app_reg *get_app_reg(void);
-void *app_loop_task(void *arg);
-void app_module_test(void);
+void uart_task_init(void);
+void uart_module_test(void);
+
 #endif
