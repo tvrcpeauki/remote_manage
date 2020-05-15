@@ -1,6 +1,6 @@
 /*
  * File      : uart_task.cpp
- * This file is uart protoco task
+ * uart hardware process task
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:

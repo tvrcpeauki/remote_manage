@@ -1,6 +1,6 @@
 /*
  * File      : app_task.cpp
- * This file is template file
+ * appliction task
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:
@@ -13,6 +13,7 @@
  */
 /*@{*/
 #include "driver/led.h"
+#include "driver/beep.h"
 #include "include/app_task.h"
 
 /**************************************************************************
@@ -153,7 +154,11 @@ void app_reg::hardware_refresh(void)
                 led_convert(reg_ptr[2]&0x01);
             }
 
-             /*修改beep*/
+            /*修改beep*/
+            if(reg_set_status&(1<<2))
+            {
+                beep_convert((reg_ptr[2]>>1)&0x01);
+            }
 
             reg_ptr[0] = 0;
             reg_ptr[1] = 0;

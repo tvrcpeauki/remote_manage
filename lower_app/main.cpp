@@ -1,6 +1,6 @@
 /*
  * File      : main.cpp
- * This file is uart protocolw work
+ * main frame process
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:

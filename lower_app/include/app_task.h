@@ -1,6 +1,6 @@
 /* 
  * File      : app_task.h
- * This file is application task interface
+ * application task interface
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:

@@ -1,6 +1,6 @@
 /*
  * File      : protocol.cpp
- * 协议层文件,符合解析的结构
+ * protocol layer do
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:

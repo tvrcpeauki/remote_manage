@@ -1,6 +1,6 @@
 /*
- * File      : template.h
- * This file is template file interface
+ * File      : typedef.h
+ * system define
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:
@@ -51,6 +51,7 @@ typedef unsigned int uint32_t;
 ***************************************************************************/
 #define TTY_DEVICE  "/dev/ttymxc2"
 #define LED_DEVICE  "/dev/led"
+#define BEEP_DEVICE "/dev/beep"
 
 /**************************************************************************
 * Global Functon Declaration

@@ -1,6 +1,6 @@
 /*
  * File      : uart_task.h
- * This file is uart task interface
+ * uart task interface
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:

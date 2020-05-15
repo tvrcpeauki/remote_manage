@@ -1,6 +1,6 @@
 /*
  * File      : protocol.h
- * 协议层对外访问接口
+ * protocol layer interface
  * COPYRIGHT (C) 2020, zc
  *
  * Change Logs:
