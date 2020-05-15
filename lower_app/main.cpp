@@ -63,7 +63,6 @@ int main(int argc, char* argv[])
 	uart_task_init();
 	app_task_init();
 	for(;;){
-
 	}
 #else
 	system_test();
@@ -111,6 +110,7 @@ public:
 	}
 	int device_write(int fd, uint8_t *ptr, uint16_t size){
 		log_array(ptr, size);
+		return size;
 	}
 };
 

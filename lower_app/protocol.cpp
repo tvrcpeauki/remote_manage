@@ -164,8 +164,10 @@ int protocol_info::execute_command(int fd)
 		default:
 			break;
 	}
-	free(cache_ptr);
+	free(cache_ptr);    
 
+    /*发送数据，并清空接收数据*/
+    this->rx_size = 0;
     this->device_write(fd, this->tx_ptr, this->tx_size);
 	return RT_OK;
 }

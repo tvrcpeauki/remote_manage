@@ -45,7 +45,7 @@ app_reg *app_reg_ptr;
 app_reg::app_reg(void)
 {
     /*清除内部寄存状态*/
-    memset(this->reg, 0, REG_NUM);
+    memset((char *)this->reg, 0, REG_NUM);
     if(pthread_mutex_init(&this->reg_mutex, NULL) != 0)
     {
         printf("mutex init failed\n");
