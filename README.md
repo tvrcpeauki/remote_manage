@@ -21,9 +21,9 @@ https://www.cnblogs.com/zc110747/p/12747213.html
 上位机兼容性(upper_app):仅测试window10平台， 不保证其它本版本系统的兼容性      
 
 编译环境  
-下位机交叉编译工具:arm-linux-gnueabihf-g++
-上位机编译工具:QT5.12.8
-目前Makefile中路径位绝对路径，实际编译需要修改。
+下位机交叉编译工具:arm-linux-gnueabihf-g++  
+上位机编译工具:QT5.12.8  
+目前Makefile中路径位绝对路径，实际编译需要修改。  
 
 本项目是我学习嵌入式Linux开发中的实现代码，更详细的资料参考上述链接说明    
 另外有问题可直接提交issuses,我会尽快处理。
