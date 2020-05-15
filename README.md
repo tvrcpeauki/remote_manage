@@ -1,0 +1,2 @@
+# remote_manage
+用于运行在imx6ull平台的下位机应用层代码
