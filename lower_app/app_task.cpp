@@ -189,15 +189,34 @@ int app_reg::hardware_refresh(void)
         if(reg_set_status&0x01)
         {
             /*LED设置处理*/
-            if(reg_set_status&(1<<1))
+            for(uint8_t index = 1; index<16; index++)
             {
-                led_convert(reg_ptr[2]&0x01);
-            }
-
-            /*修改beep*/
-            if(reg_set_status&(1<<2))
-            {
-                beep_convert((reg_ptr[2]>>1)&0x01);
+                uint16_t device_cmd = reg_set_status>>index;
+                if(device_cmd == 0)
+                {
+                    break;
+                }
+                else if(device_cmd&0x01 != 0)
+                {
+                    switch(index)
+                    {
+                        case DEVICE_LED0:
+                            led_convert(reg_ptr[2]&0x01);
+                        break;
+                        case DEVICE_BEEP:
+                            beep_convert((reg_ptr[2]>>1)&0x01);
+                        break;
+                        case DEVICE_REBOOT:
+                            system("reboot");
+                            while(1){
+                                USR_DEBUG("wait for reboot\r\n");
+                                sleep(1);
+                            }
+                        break;
+                        default:
+                        break;
+                    }
+                }         
             }
 
             reg_ptr[0] = 0;

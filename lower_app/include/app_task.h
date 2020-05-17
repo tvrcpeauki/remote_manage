@@ -19,6 +19,7 @@
 * Include Header Files
 ***************************************************************************/
 #include <pthread.h>
+#include<stdlib.h>
 #include "typedef.h"
 
 /**************************************************************************
@@ -27,6 +28,11 @@
 #define REG_NUM                 256
 #define REG_CONFIG_NUM          64
 #define REG_INFO_NUM            192
+
+/*设备配置信息*/
+#define DEVICE_LED0             1
+#define DEVICE_BEEP             2
+#define DEVICE_REBOOT           3
 
 /**************************************************************************
 * Global Type Definition
