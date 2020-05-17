@@ -9,7 +9,7 @@
 document/   文档说明(仅简单说明，设计思路参考下面链接)  
 kernal_mod/ 内核驱动模块说明或者实现  
 lower_app/  下位机代码实现  
-server/     运行于嵌入式平台的服务器代码和固件库   
+server/     运行于嵌入式平台的服务器代码支持环境   
 test/       测试代码  
 upper_app/  上位机代码实现  
 
