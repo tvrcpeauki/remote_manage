@@ -95,7 +95,44 @@ uint16_t app_reg::get_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *p
 }
 
 /**
- * 设置数据到内部寄存
+ * 判断数据是否变化后修改数据，变化了表明了其它线程修改了指令
+ * 
+ * @param reg_index 寄存器的起始地址
+ * @param size 读取的寄存器的数量
+ * @param pstart 设置数据的地址
+ * @param psrc   缓存的原始寄存器数据
+ *  
+ * @return NULL
+ */
+int app_reg::diff_modify_reg(uint16_t reg_index, uint16_t size, uint8_t *pstart, uint8_t *psrc)
+{
+    uint16_t index, end_index;
+
+    end_index = reg_index+size;
+    if(end_index>REG_NUM)
+        end_index = REG_NUM;
+
+    pthread_mutex_lock(&this->reg_mutex);
+    if(memcmp((char *)&this->reg[reg_index], psrc, size) != 0)
+    {
+        pthread_mutex_unlock(&this->reg_mutex);
+        return RT_FAIL;
+    }
+
+    for(index=reg_index; index<end_index; index++)
+    {
+        this->reg[index] = *(pstart+index);
+    }
+    pthread_mutex_unlock(&this->reg_mutex);
+    #if __SYSTEM_DEBUG
+    printf("diff array:");
+    log_array(this->reg, size);
+    #endif
+    return RT_OK;
+}
+
+/**
+ * 设置数据到内部寄存器
  * 
  * @param reg_index 寄存器的起始地址
  * @param size 读取的寄存器的数量
@@ -130,27 +167,30 @@ void app_reg::set_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *pstar
  *  
  * @return NULL
  */
-void app_reg::hardware_refresh(void)
+int app_reg::hardware_refresh(void)
 {
     uint8_t *reg_ptr;
-    uint8_t reg_cache_buf[REG_NUM];
-    uint8_t is_reg_modify = 0;
+    uint8_t *reg_cache_ptr;
+    uint8_t is_reg_modify;
     uint16_t reg_set_status;
 
-    reg_ptr = (uint8_t *)malloc(REG_NUM);
-    if(reg_ptr != NULL)
+    reg_ptr = (uint8_t *)malloc(REG_CONFIG_NUM);
+    reg_cache_ptr = (uint8_t *)malloc(REG_CONFIG_NUM);
+    is_reg_modify = 0;
+
+    if(reg_ptr != NULL && reg_cache_ptr != NULL)
     {
-        /*读取所有的寄存值*/
-        this->get_multiple_val(0, REG_NUM, reg_ptr);
-        reg_set_status = reg_ptr[1] <<8 | reg_ptr[0];
+        /*读取所有的寄存值并复制到缓存中*/
+        this->get_multiple_val(0, REG_CONFIG_NUM, reg_ptr);
+        memcpy(reg_cache_ptr, reg_ptr, REG_CONFIG_NUM); 
 
         /*有设置消息*/
+        reg_set_status = reg_ptr[1] <<8 | reg_ptr[0];
         if(reg_set_status&0x01)
         {
             /*LED设置处理*/
             if(reg_set_status&(1<<1))
             {
-                //USR_DEBUG("LED convert, 0x%x, %d\n", reg_set_status, reg_ptr[2]&0x01);
                 led_convert(reg_ptr[2]&0x01);
             }
 
@@ -165,25 +205,28 @@ void app_reg::hardware_refresh(void)
             is_reg_modify = 1;
         }
   
-        memcpy(reg_cache_buf, reg_ptr, REG_NUM);
         /*更新寄存器状态*/
-
-        if(memcmp(reg_cache_buf, reg_ptr, REG_NUM) != 0)
-        {
-            is_reg_modify = 1;
-        }
-        if(is_reg_modify == 1)
-        {
-            this->set_multiple_val(0, REG_NUM, reg_cache_buf);
-            is_reg_modify = 0;
+        if(is_reg_modify == 1){
+            if(this->diff_modify_reg(0, REG_CONFIG_NUM, reg_ptr, reg_cache_ptr) == RT_OK){
+                is_reg_modify = 0;
+            }
+            else
+            {
+                free(reg_ptr);
+                free(reg_cache_ptr);
+                USR_DEBUG("modify by other interface\n");
+                return RT_FAIL;
+            }
         }
 
         free(reg_ptr);
+        free(reg_cache_ptr);
     }
     else{
         USR_DEBUG("malloc error\n");
     }
 
+    return RT_OK;
 }
 
 /**
@@ -240,7 +283,8 @@ void *app_loop_task(void *arg)
 {
     USR_DEBUG("app Task Start\n");
     for(;;){
-        app_reg_ptr->hardware_refresh();
-        usleep(800);
+        if(app_reg_ptr->hardware_refresh() == RT_OK){
+            usleep(800);      //指令处理完休眠，非RT_OK表示仍有指令需要处理
+        }
     }
 }

@@ -109,6 +109,7 @@ public:
 		return sizeof(test_command);
 	}
 	int device_write(int fd, uint8_t *ptr, uint16_t size){
+		printf("send array:");
 		log_array(ptr, size);
 		return size;
 	}

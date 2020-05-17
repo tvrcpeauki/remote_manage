@@ -24,7 +24,9 @@
 /**************************************************************************
 * Global Macro Definition
 ***************************************************************************/
-#define REG_NUM  256
+#define REG_NUM                 256
+#define REG_CONFIG_NUM          64
+#define REG_INFO_NUM            192
 
 /**************************************************************************
 * Global Type Definition
@@ -34,9 +36,10 @@ class app_reg
 public:
     app_reg(void);
         ~app_reg();
+    int hardware_refresh(void);
     uint16_t get_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *pstart);
     void set_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *pstart);
-    void hardware_refresh(void);
+    int diff_modify_reg(uint16_t reg_index, uint16_t size, uint8_t *pstart, uint8_t *psrc);
 private:
     uint8_t reg[REG_NUM];
     pthread_mutex_t reg_mutex; /*数据读取都要执行该锁*/
