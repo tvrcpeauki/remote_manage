@@ -17,7 +17,13 @@ public:
     void init();    
 
 private slots:
-    void on_open_btn_clicked();
+    void on_btn_clear_clicked();
+    void on_btn_led_off_clicked();
+    void on_btn_led_on_clicked();
+
+    void on_btn_beep_on_clicked();
+
+    void on_btn_beep_off_clicked();
 
 private:
     Ui::MainWindow *ui;

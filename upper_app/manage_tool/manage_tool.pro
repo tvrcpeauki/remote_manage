@@ -20,9 +20,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    protocol.cpp \
+    uart_thread.cpp
 
 HEADERS += \
     mainwindow.h \
+    protocol.h \
+    uart_thread_h.h
 
 FORMS += \
     mainwindow.ui
