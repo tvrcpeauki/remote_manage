@@ -1,4 +1,4 @@
-
+//协议层的实现
 #include "protocol.h"
 #include <QTime>
 

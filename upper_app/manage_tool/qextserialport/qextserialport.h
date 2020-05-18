@@ -133,6 +133,7 @@ enum ParityType {
 };
 
 enum StopBitsType {
+    STOP_EMPTY,
 	STOP_1,
 #if defined(Q_OS_WIN) || defined(qdoc)
 	STOP_1_5,               //WINDOWS ONLY

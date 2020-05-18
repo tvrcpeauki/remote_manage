@@ -1,11 +1,30 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "protocol.h"
+#include "uart_thread.h"
+#include "queue.h"
 
-protocol_info *sys_protocol_ptr;
-uint8_t rx_buffer[BUFF_CACHE_SIZE];
-uint8_t tx_buffer[BUFF_CACHE_SIZE];
+extern MyQueue *uart_queue;
+ComInfo *com_info;
 
+uint8_t led_on_cmd[] = {
+    0x02, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x01
+};
+uint8_t led_off_cmd[] = {
+    0x02, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x00
+};
+uint8_t beep_on_cmd[] = {
+    0x02, 0x00, 0x00, 0x00, 0x03, 0x05, 0x00, 0x02
+};
+uint8_t beep_off_cmd[] = {
+    0x02, 0x00, 0x00, 0x00, 0x03, 0x05, 0x00, 0x00
+};
+
+//函数声明
+void init_btn_disable(Ui::MainWindow *ui);
+void init_btn_enable(Ui::MainWindow *ui);
+
+//类的实现
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -21,6 +40,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::init()
 {
+    //添加COM口
+    QStringList comList;
+    for (int i = 1; i <= 20; i++) {
+        comList << QString("COM%1").arg(i);
+    }
+    ui->combo_box_com->addItems(comList);
+
     //波特率选项
     QStringList BaudList;
     BaudList <<"9600"<<"38400"<<"76800"<<"115200"<<"230400";
@@ -52,12 +78,122 @@ void MainWindow::init()
     QValidator *validator_id = new QRegExpValidator(regx,  ui->line_edit_dev_id);
     ui->line_edit_dev_id->setValidator( validator_id );
 
-    sys_protocol_ptr = new protocol_info(rx_buffer, tx_buffer);
+    //启动应用相关的处理
+    com_info = new ComInfo();
+    uart_thread_init(ui);
+
+    //默认按键配置不可操作
+    init_btn_disable(ui);
+    ui->btn_uart_close->setDisabled(true);
 }
 
-QString byteArrayToHexString(uint8_t* str, uint16_t size)
+//功能函数
+void init_btn_disable(Ui::MainWindow *ui)
 {
-    QString result = "";
+    ui->btn_led_on->setDisabled(true);
+    ui->btn_led_off->setDisabled(true);
+    ui->btn_reboot->setDisabled(true);
+    ui->btn_beep_on->setDisabled(true);
+    ui->btn_beep_off->setDisabled(true);
+    ui->btn_refresh->setDisabled(true);
+    ui->btn_send_cmd->setDisabled(true);
+}
+
+void init_btn_enable(Ui::MainWindow *ui)
+{
+    ui->btn_led_on->setEnabled(true);
+    ui->btn_led_off->setEnabled(true);
+    ui->btn_reboot->setEnabled(true);
+    ui->btn_beep_on->setEnabled(true);
+    ui->btn_beep_off->setEnabled(true);
+    ui->btn_refresh->setEnabled(true);
+    ui->btn_send_cmd->setEnabled(true);
+}
+
+//打开LED
+void MainWindow::on_btn_led_on_clicked()
+{
+    QString Strbuf;
+    MyQInfo *info = new MyQInfo(sizeof(led_on_cmd), led_on_cmd);
+
+    uart_queue->QueuePost(info);
+}
+
+//关闭LED
+void MainWindow::on_btn_led_off_clicked()
+{
+    QString Strbuf;
+    MyQInfo *info = new MyQInfo(sizeof(led_off_cmd), led_off_cmd);
+
+    uart_queue->QueuePost(info);
+}
+
+//打开蜂鸣器
+void MainWindow::on_btn_beep_on_clicked()
+{
+    QString Strbuf;
+    MyQInfo *info = new MyQInfo(sizeof(beep_on_cmd), beep_on_cmd);
+
+    uart_queue->QueuePost(info);
+}
+
+//关闭蜂鸣器
+void MainWindow::on_btn_beep_off_clicked()
+{
+    QString Strbuf;
+    MyQInfo *info = new MyQInfo(sizeof(beep_off_cmd), beep_off_cmd);
+
+    uart_queue->QueuePost(info);
+}
+
+//关闭串口
+void MainWindow::on_btn_uart_close_clicked()
+{
+    init_btn_disable(ui);
+    com_info->com->close();
+    com_info->com->deleteLater();
+    ui->btn_uart_close->setDisabled(true);
+    ui->btn_uart_open->setEnabled(true);
+    ui->text_edit_test->append("串口关闭");
+}
+
+//开启串口
+void MainWindow::on_btn_uart_open_clicked()
+{
+    com_info->com = new QextSerialPort(ui->combo_box_com->currentText(), QextSerialPort::Polling);
+    com_info->com_status = com_info->com->open(QIODevice::ReadWrite);
+
+    if(com_info->com_status)
+    {
+        //清除缓存区
+        com_info->com->flush();
+        //设置波特率
+        com_info->com->setBaudRate((BaudRateType)ui->combo_box_baud->currentText().toInt());
+        //设置数据位
+        com_info->com->setDataBits((DataBitsType)ui->combo_box_data->currentText().toInt());
+        //设置校验位
+        com_info->com->setParity((ParityType)ui->combo_box_parity->currentText().toInt());
+        //设置停止位
+        com_info->com->setStopBits((StopBitsType)ui->combo_box_stop->currentText().toInt());
+        com_info->com->setFlowControl(FLOW_OFF);
+        com_info->com->setTimeout(10);
+        init_btn_enable(ui);
+        ui->btn_uart_close->setEnabled(true);
+        ui->btn_uart_open->setDisabled(true);
+        ui->text_edit_test->append(QString("串口打开成功"));
+    }
+    else
+    {
+        com_info->com->deleteLater();
+        ui->text_edit_test->append("串口打开失败");
+        com_info->com_status = false;
+    }
+}
+
+//数组转换成指针发送
+QString byteArrayToHexString(QString head, uint8_t* str, uint16_t size, QString tail)
+{
+    QString result = head;
     QString s;
 
     for(int i = 0; i < size; ++i)
@@ -68,72 +204,7 @@ QString byteArrayToHexString(uint8_t* str, uint16_t size)
         result.append(s.toUpper());
         result.append(' ');
     }
+    result += tail;
     result.chop(1);
     return result;
-}
-
-QString do_cmd_send_info(uint8_t *cmd, uint8_t size)
-{
-    int len;
-    QString Sendbuf = "";
-    len = sys_protocol_ptr->create_send_buf(0x0001, size, cmd);
-
-    Sendbuf += "Sendbuf: ";
-    Sendbuf += byteArrayToHexString(tx_buffer, len);
-    return Sendbuf;
-}
-
-//清理接收数据框
-void MainWindow::on_btn_clear_clicked()
-{
-    ui->text_edit_test->clear();
-    ui->text_edit_recv->clear();
-}
-
-//打开LED
-void MainWindow::on_btn_led_on_clicked()
-{
-    QString Strbuf;
-    uint8_t led_open_cmd[] = {
-        0x02, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x01
-    };
-
-    Strbuf = do_cmd_send_info(led_open_cmd, sizeof(led_open_cmd));
-    ui->text_edit_test->append(Strbuf);
-}
-
-//关闭LED
-void MainWindow::on_btn_led_off_clicked()
-{
-    QString Strbuf;
-    uint8_t led_close_cmd[] = {
-        0x02, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x00
-    };
-
-    Strbuf = do_cmd_send_info(led_close_cmd, sizeof(led_close_cmd));
-    ui->text_edit_test->append(Strbuf);
-}
-
-//打开蜂鸣器
-void MainWindow::on_btn_beep_on_clicked()
-{
-    QString Strbuf;
-    uint8_t beep_open_cmd[] = {
-        0x02, 0x00, 0x00, 0x00, 0x03, 0x05, 0x00, 0x02
-    };
-
-    Strbuf = do_cmd_send_info(beep_open_cmd, sizeof(beep_open_cmd));
-    ui->text_edit_test->append(Strbuf);
-}
-
-//关闭蜂鸣器
-void MainWindow::on_btn_beep_off_clicked()
-{
-    QString Strbuf;
-    uint8_t beep_close_cmd[] = {
-        0x02, 0x00, 0x00, 0x00, 0x03, 0x05, 0x00, 0x00
-    };
-
-    Strbuf = do_cmd_send_info(beep_close_cmd, sizeof(beep_close_cmd));
-    ui->text_edit_test->append(Strbuf);
 }

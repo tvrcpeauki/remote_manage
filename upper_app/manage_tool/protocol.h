@@ -1,9 +1,7 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
+#include "typedef.h"
 
 #define PROTOCOL_SEND_HEAD  0x5A
 
@@ -17,6 +15,9 @@ public:
     int check_receive_data(void);
     int create_send_buf(uint8_t id, uint16_t size, uint8_t *pdata);
     uint16_t crc_calculate(uint8_t *ptr, int len);
+
+    virtual int device_read(uint8_t *ptr, uint16_t size) = 0;
+    virtual int device_write(uint8_t *ptr, uint16_t size) = 0;
 private:
     uint8_t *rx_ptr;
     uint8_t *tx_ptr;
