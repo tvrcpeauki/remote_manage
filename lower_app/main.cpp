@@ -98,16 +98,34 @@ const uint8_t test_command[] = {
 };
 class test_protocol_info:public protocol_info
 {
+private: 
+	uint16_t read_num;
+	uint16_t total_num;
+
 public:
 	test_protocol_info(uint8_t *p_rx, uint8_t *p_tx, uint8_t *p_rxd, uint16_t max_bs):
 		protocol_info(p_rx, p_tx, p_rxd, max_bs){
+			total_num = sizeof(test_command);
+			read_num = 0;
 	}
 	~test_protocol_info(){}
 
-	int device_read(int fd, uint8_t *ptr, uint16_t size){
-		memcpy(ptr, test_command, sizeof(test_command));
-		return sizeof(test_command);
+	void clear(void){
+		read_num = 0;
 	}
+
+	int device_read(int fd, uint8_t *ptr, uint16_t size){
+		uint16_t left_num, min_num;
+
+		left_num = total_num - read_num;
+
+		min_num = size>=left_num?left_num:size;
+		memcpy(ptr, &test_command[read_num], min_num);
+		read_num += min_num;
+
+		return min_num;
+	}
+	
 	int device_write(int fd, uint8_t *ptr, uint16_t size){
 		printf("send array:");
 		log_array(ptr, size);

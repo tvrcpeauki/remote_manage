@@ -72,55 +72,83 @@ int protocol_info::check_receive_data(int fd)
     int nread;
     int CrcRecv, CrcCacl;
 	struct req_frame *frame_ptr; 
+    frame_ptr = (struct req_frame *)this->rx_ptr;
 
-	/*从设备中读取数据*/
-    nread = this->device_read(fd, &this->rx_ptr[this->rx_size], 
-                             (this->max_buf_size-this->rx_size));
-    if(nread > 0)
-    {        
-       this->rx_size += nread;
-       frame_ptr = (struct req_frame *)this->rx_ptr;
-
-	   /*接收到头不符合预期*/
-       if(frame_ptr->head != PROTOCOL_REQ_HEAD) {
-            USR_DEBUG("No Valid Head\n");
-	    	this->rx_size = 0;
+    //数据包头的处理
+    if(rx_size == 0)
+    {
+        nread = device_read(fd, &rx_ptr[rx_size], 1);
+        if(nread != 0 &&frame_ptr->head == PROTOCOL_REQ_HEAD)
+        {
+            rx_size++;
+            timeout = 0;
+        }
+        else
+        {
+            usleep(1);
+            rx_size = 0;
             return RT_FAIL;
-       }
+        }
+    }
 
-	   /*已经接收到长度数据*/
-       else if(this->rx_size > 5){
-		    int nLen;
+    //数据包的解析
+    if(rx_size > 0)
+    {
+        /*从设备中读取数据*/
+        nread = device_read(fd, &rx_ptr[rx_size], (max_buf_size-rx_size));
+        if(nread > 0)
+        {        
+            timeout = 0;
+            rx_size += nread;
 
-		    /*设备ID检测*/
-            if(frame_ptr->id != PROTOCOL_DEVICE_ID)
+            /*已经接收到长度数据*/
+            if(rx_size > 5)
             {
-                this->rx_size = 0;
-				USR_DEBUG("Valid ID\n");
-                return RT_FAIL;
-            }
+                int nLen;
 
-			/*获取接收数据的总长度*/
-			this->rx_data_size = LENGTH_CONVERT(frame_ptr->length);
-
-			/*crc冗余校验*/
-            nLen = this->rx_data_size+FRAME_HEAD_SIZE+CRC_SIZE;
-            if(this->rx_size >= nLen)
-            {
-				/*计算head后到CRC尾之前的所有数据的CRC值*/
-                CrcRecv = (this->rx_ptr[nLen-2]<<8) + this->rx_ptr[nLen-1];
-                CrcCacl = this->crc_calculate(&this->rx_ptr[1], nLen-CRC_SIZE-1);
-                if(CrcRecv == CrcCacl){
-					this->packet_id = LENGTH_CONVERT(frame_ptr->packet_id);
-                    return RT_OK;
-                }
-                else{
-					this->rx_size = 0;
-                    USR_DEBUG("CRC Check ERROR!. rx_data:%d, r:%d, c:%d\n", this->rx_data_size, CrcRecv, CrcCacl);
+                /*设备ID检测*/
+                if(frame_ptr->id != PROTOCOL_DEVICE_ID)
+                {
+                    rx_size = 0;
+                    USR_DEBUG("Devoce ID Invalid\n");
                     return RT_FAIL;
                 }
-            }  
-       }           
+
+                /*获取接收数据的总长度*/
+                this->rx_data_size = LENGTH_CONVERT(frame_ptr->length);
+
+                /*crc冗余校验*/
+                nLen = this->rx_data_size+FRAME_HEAD_SIZE+CRC_SIZE;
+                if(this->rx_size >= nLen)
+                {
+                    /*计算head后到CRC尾之前的所有数据的CRC值*/
+                    CrcRecv = (this->rx_ptr[nLen-2]<<8) + this->rx_ptr[nLen-1];
+                    CrcCacl = this->crc_calculate(&this->rx_ptr[1], nLen-CRC_SIZE-1);
+                    if(CrcRecv == CrcCacl){
+                        this->packet_id = LENGTH_CONVERT(frame_ptr->packet_id);
+                        return RT_OK;
+                    }
+                    else{
+                        this->rx_size = 0;
+                        USR_DEBUG("CRC Check ERROR!. rx_data:%d, r:%d, c:%d\n", this->rx_data_size, CrcRecv, CrcCacl);
+                        return RT_FAIL;
+                    }
+                }  
+            }           
+        }
+        else
+        {
+            usleep(1);
+            timeout++;
+            if(timeout > 3000)
+            {
+                rx_size = 0;
+                timeout = 0;
+                USR_DEBUG("Recv Timeout\n");
+                return RT_FAIL;
+            }
+        }
+        
     }
     return RT_EMPTY;
 }

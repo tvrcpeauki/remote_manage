@@ -208,7 +208,7 @@ public:
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 710, 26));
+        menubar->setGeometry(QRect(0, 0, 710, 23));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -242,6 +242,7 @@ public:
         label_reboot->setText(QApplication::translate("MainWindow", "\345\244\215\344\275\215", nullptr));
         btn_reboot->setText(QApplication::translate("MainWindow", "\345\244\215\344\275\215", nullptr));
         label_dev_id->setText(QApplication::translate("MainWindow", "\350\256\276\345\244\207ID", nullptr));
+        line_edit_dev_id->setText(QApplication::translate("MainWindow", "1", nullptr));
         label_cmd->setText(QApplication::translate("MainWindow", "\350\207\252\345\256\232\344\271\211\346\214\207\344\273\244", nullptr));
         btn_send_cmd->setText(QApplication::translate("MainWindow", "\346\214\207\344\273\244\345\217\221\351\200\201", nullptr));
         label_test->setText(QApplication::translate("MainWindow", "\350\260\203\350\257\225\347\252\227\345\217\243", nullptr));

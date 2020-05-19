@@ -5,7 +5,7 @@
 
 MyQueue *uart_queue;
 uart_protocol_info *uart_protocol_ptr;
-extern ComInfo *com_info;
+ComInfo *com_info;
 uint8_t rx_buffer[BUFF_CACHE_SIZE];
 uint8_t tx_buffer[BUFF_CACHE_SIZE];
 
@@ -37,7 +37,7 @@ void uart_thread::run()
         {
             if(com_info->com_status)
             {
-                len = uart_protocol_ptr->create_send_buf(0x0001, info->size, info->buf);
+                len = uart_protocol_ptr->create_send_buf(uart_protocol_ptr->get_id(), info->size, info->buf);
                 Sendbuf += byteArrayToHexString("Sendbuf:", tx_buffer, len, "\n");
                 uart_protocol_ptr->device_write(tx_buffer, len);
 
@@ -84,3 +84,4 @@ void uart_thread_init(void)
     uart_protocol_ptr = new uart_protocol_info(rx_buffer, tx_buffer);
     uart_queue = new MyQueue();
 }
+

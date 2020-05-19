@@ -29,7 +29,7 @@
 * Global Macro Definition
 ***************************************************************************/
 #define __DEBUG_PRINTF			1
-#define __SYSTEM_DEBUG          0
+#define __SYSTEM_DEBUG          1
 
 /*返回状态*/
 #define RT_OK               	0x00

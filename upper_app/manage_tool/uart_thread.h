@@ -18,7 +18,15 @@ public:
 
     int device_read(uint8_t *ptr, uint16_t max_size);
     int device_write(uint8_t *ptr, uint16_t size);
+    uint16_t get_id(void){
+        return id;
+    }
+    void set_id(uint16_t cur_id){
+        id = cur_id;
+    }
 
+private:
+    uint16_t id;
 };
 
 class uart_thread:public QThread

@@ -86,6 +86,7 @@ private:
 	uint16_t tx_size;      //发送数据长度
 	uint16_t rx_data_size; //接收数据数据段长度
     uint16_t max_buf_size;  //最大的数据长度
+	uint32_t timeout; //超时时间
     uint16_t crc_calculate(uint8_t *ptr, int len);
 };
 /**************************************************************************
