@@ -97,6 +97,8 @@ static void *uart_loop_task(void *arg)
 		flag = upi_ptr->check_receive_data(com_fd);
 		if(flag == RT_OK){
 			upi_ptr->execute_command(com_fd);
+		}else{
+			usleep(10); //通讯结束让出线程
 		}
 	}
 }
