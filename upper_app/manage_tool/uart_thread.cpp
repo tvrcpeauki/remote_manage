@@ -9,10 +9,9 @@ extern ComInfo *com_info;
 uint8_t rx_buffer[BUFF_CACHE_SIZE];
 uint8_t tx_buffer[BUFF_CACHE_SIZE];
 
-uart_thread::uart_thread(Ui::MainWindow *ui)
+uart_thread::uart_thread(QObject *parent):QThread(parent)
 {
     this->isStop = 0;
-    this->ui = ui;
 }
 
 void uart_thread::closeThread()
@@ -20,12 +19,6 @@ void uart_thread::closeThread()
     this->isStop = 1;
 }
 
-//清理接收数据框
-void MainWindow::on_btn_clear_clicked()
-{
-    ui->text_edit_test->clear();
-    ui->text_edit_recv->clear();
-}
 
 //任务执行函数
 void uart_thread::run()
@@ -47,8 +40,9 @@ void uart_thread::run()
                 len = uart_protocol_ptr->create_send_buf(0x0001, info->size, info->buf);
                 Sendbuf += byteArrayToHexString("Sendbuf:", tx_buffer, len, "\n");
                 uart_protocol_ptr->device_write(tx_buffer, len);
-                //ui->text_edit_test->setText(Sendbuf);
-               //qDebug()<<Sendbuf;
+
+                //通知主线程更新窗口
+                emit send_edit_test(Sendbuf);
                 Sendbuf.clear();
                 while(1)
                 {
@@ -58,8 +52,9 @@ void uart_thread::run()
                 }
 
                 Sendbuf += byteArrayToHexString("Recvbuf:", rx_buffer, len, "\n");
+                //通知主线程更新窗口
+                emit send_edit_test(Sendbuf);
                 //qDebug()<<Sendbuf;
-                //ui->text_edit_test->append(Sendbuf);
                 Sendbuf.clear();
             }
 
@@ -84,10 +79,8 @@ int uart_protocol_info::device_read(uint8_t *ptr, uint16_t max_size)
 int device_write(uint8_t *ptr, uint16_t size);
 
 //任务初始化
-void uart_thread_init(Ui::MainWindow *ui)
+void uart_thread_init(void)
 {
     uart_protocol_ptr = new uart_protocol_info(rx_buffer, tx_buffer);
     uart_queue = new MyQueue();
-    uart_thread *mythread = new uart_thread(ui);
-    mythread->start();
 }

@@ -18,6 +18,10 @@ public:
     ~MainWindow();
     void init();
 
+public slots:
+    void append_text_edit_recv(QString s);
+    void append_text_edit_test(QString s);
+
 private slots:
     void on_btn_clear_clicked();
     void on_btn_led_off_clicked();

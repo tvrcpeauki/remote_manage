@@ -18,22 +18,29 @@ public:
 
     int device_read(uint8_t *ptr, uint16_t max_size);
     int device_write(uint8_t *ptr, uint16_t size);
+
 };
 
 class uart_thread:public QThread
 {
+    Q_OBJECT
+
 public:
-    uart_thread(Ui::MainWindow *);
+    explicit uart_thread(QObject *parent = 0);
     void closeThread();
+
 protected:
     virtual void run();
 
+signals:
+    void send_edit_recv(QString);
+    void send_edit_test(QString);
+
 private:
     volatile bool isStop;
-    Ui::MainWindow *ui;
 };
 
 
-void uart_thread_init(Ui::MainWindow *ui);
+void uart_thread_init(void);
 
 #endif // UART_THREAD_H_H

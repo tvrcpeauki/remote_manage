@@ -80,11 +80,28 @@ void MainWindow::init()
 
     //启动应用相关的处理
     com_info = new ComInfo();
-    uart_thread_init(ui);
+    uart_thread_init();
 
     //默认按键配置不可操作
     init_btn_disable(ui);
     ui->btn_uart_close->setDisabled(true);
+
+    uart_thread *mythread = new uart_thread();
+
+    //信号槽通讯连接
+    connect(mythread, SIGNAL(send_edit_recv(QString)), this, SLOT(append_text_edit_recv(QString)));
+    connect(mythread, SIGNAL(send_edit_test(QString)), this, SLOT(append_text_edit_test(QString)));
+    mythread->start();
+}
+
+void MainWindow::append_text_edit_recv(QString s)
+{
+    ui->text_edit_recv->append(s);
+}
+
+void MainWindow::append_text_edit_test(QString s)
+{
+    ui->text_edit_test->append(s);
 }
 
 //功能函数
@@ -188,6 +205,13 @@ void MainWindow::on_btn_uart_open_clicked()
         ui->text_edit_test->append("串口打开失败");
         com_info->com_status = false;
     }
+}
+
+//清理接收数据框
+void MainWindow::on_btn_clear_clicked()
+{
+    ui->text_edit_test->clear();
+    ui->text_edit_recv->clear();
 }
 
 //数组转换成指针发送
