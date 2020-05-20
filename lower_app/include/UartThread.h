@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2020-5-4      zc           the first version
+ * 2020-5-20     zc           Code standardization 
  */
 
 /**
@@ -18,31 +19,31 @@
 /***************************************************************************
 * Include Header Files
 ***************************************************************************/
-#include "typedef.h"
-#include "protocol.h"
+#include "UsrTypeDef.h"
+#include "UsrProtocol.h"
 
 /**************************************************************************
 * Global Macro Definition
 ***************************************************************************/
-
 #define BUFFER_SIZE     		1200
+
 /**************************************************************************
 * Global Type Definition
 ***************************************************************************/
-class uart_protocol_info:public protocol_info
+class CUartProtocolInfo:public CProtocolInfo
 {
 public:
-	uart_protocol_info(uint8_t *p_rx, uint8_t *p_tx, uint8_t *p_rxd, uint16_t max_bs):
-		protocol_info(p_rx, p_tx, p_rxd, max_bs){
+	CUartProtocolInfo(uint8_t *pRxCachebuf, uint8_t *pTxCacheBuf, uint8_t *pRxData, uint16_t nMaxSize):
+		CProtocolInfo(pRxCachebuf, pTxCacheBuf, pRxData, nMaxSize){}
+	~CUartProtocolInfo(){}
 
+	int DeviceRead(int nFd, uint8_t *pDataStart, uint16_t nDataSize)
+	{
+		return read(nFd, pDataStart, nDataSize);
 	}
-	~uart_protocol_info(){}
-
-	int device_read(int fd, uint8_t *ptr, uint16_t size){
-		return read(fd, ptr, size);
-	}
-	int device_write(int fd, uint8_t *ptr, uint16_t size){
-		return write(fd, ptr, size);
+	int DeviceWrite(int nFd, uint8_t *pDataStart, uint16_t nDataSize)
+	{
+		return write(nFd, pDataStart, nDataSize);
 	}
 };
 
@@ -53,7 +54,5 @@ public:
 /**************************************************************************
 * Global Functon Declaration
 ***************************************************************************/
-void uart_task_init(void);
-void uart_module_test(void);
-
+void UartThreadInit(void);
 #endif

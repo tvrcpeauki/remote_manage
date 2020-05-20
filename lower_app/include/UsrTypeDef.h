@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2020-5-4      zc           the first version
+ * 2020-5-20     zc           Code standardization 
  */
 
 /**
@@ -28,13 +29,15 @@
 /**************************************************************************
 * Global Macro Definition
 ***************************************************************************/
+#define __SYSTEM_DEBUG          0
 #define __DEBUG_PRINTF			1
-#define __SYSTEM_DEBUG          1
+#define __DRIVER_DEBUG          1
 
 /*返回状态*/
 #define RT_OK               	0x00
 #define RT_FAIL             	0x01
 #define RT_EMPTY            	0x02
+#define RT_TIMEOUT              0x03
 
 /**************************************************************************
 * Global Type Definition
@@ -60,12 +63,14 @@ typedef unsigned int uint32_t;
 #if __DEBUG_PRINTF	== 1
 #define USR_DEBUG		printf
 #else
-static int USR_DEBUG(const char *format, ...)
-{
-
-}
+static int USR_DEBUG(const char *format, ...){}
 #endif
 
-void log_array(uint8_t *ptr, uint16_t size);
+#if __DRIVER_DEBUG == 1
+#define DRIVER_DEBUG		printf
+#else
+static int DRIVER_DEBUG(const char *format, ...){}
+#endif
 
+void SystemLogArray(uint8_t *pArrayBuffer, uint16_t nArraySize);
 #endif

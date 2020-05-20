@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2020-5-4      zc           the first version
+ * 2020-5-20     zc           Code standardization 
  */
 
 /**
@@ -18,7 +19,7 @@
 /***************************************************************************
 * Include Header Files
 ***************************************************************************/
-#include "typedef.h"
+#include "UsrTypeDef.h"
 
 /**************************************************************************
 * Global Macro Definition
@@ -64,30 +65,30 @@ struct req_frame
 };
 #pragma pack(pop)
 
-class protocol_info
+class CProtocolInfo
 {
 public:  
-    protocol_info(uint8_t *p_rx, uint8_t *p_tx, uint8_t *p_rxd, uint16_t max_bs);
-        ~protocol_info(void){};
+    CProtocolInfo(uint8_t *pRxCachebuf, uint8_t *pTxCacheBuf, uint8_t *pRxData, uint16_t nMaxSize);
+        ~CProtocolInfo(void){};
 
-    int execute_command(int fd);                                  //数据处理和执行
-    int check_receive_data(int fd);                             //接收数据分析
-    int create_send_buf(uint8_t ack, uint16_t size, uint8_t *pdata);
+    int ExecuteCommand(int nFd);                                			//数据处理和执行
+    int CheckRxBuffer(int nFd);                             				//接收数据分析
+    int CreateTxBuffer(uint8_t nAck, uint16_t nDataSize, uint8_t *pData);	//创建发送数据包
+	uint16_t CrcCalculate(uint8_t *pDataStart, uint16_t nDataSize);					//数组生成CRC校验数据
 
 	/*设备读写函数，因为不同设备的实现可能不同，用纯虚函数*/
-	virtual int device_read(int fd, uint8_t *ptr, uint16_t size) = 0;   
-	virtual int device_write(int fd, uint8_t *ptr, uint16_t size) = 0;
+	virtual int DeviceRead(int nFd, uint8_t *pDataStart, uint16_t nDataSize) = 0;   
+	virtual int DeviceWrite(int nFd, uint8_t *pDataStart, uint16_t nDataSize) = 0;
 private:
-    uint8_t *rx_ptr;       //接收数据首指针
-	uint8_t *tx_ptr;	   //发送数据首指针
-	uint8_t *rx_data_ptr;  //接收数据数据段首指针
-	uint16_t packet_id;	   //数据包的编号,用于数据校验同步
-	uint16_t rx_size;	   //接收数据长度
-	uint16_t tx_size;      //发送数据长度
-	uint16_t rx_data_size; //接收数据数据段长度
-    uint16_t max_buf_size;  //最大的数据长度
-	uint32_t timeout; //超时时间
-    uint16_t crc_calculate(uint8_t *ptr, int len);
+    uint8_t *m_RxCachePtr;       	//接收数据首指针
+	uint8_t *m_TxCachePtr;	   		//发送数据首指针
+	uint8_t *m_RxCacheDataPtr;  	//接收数据数据段首指针
+	uint16_t m_RxBufSize;	   		//接收数据长度
+	uint16_t m_TxBufSize;      		//发送数据长度
+	uint16_t m_RxDataSize; 			//接收数据数据段长度
+    uint16_t m_MaxCacheBufSize;  	//最大的数据长度
+	uint16_t m_PacketNum;	  		//数据包的编号,用于数据校验同步
+	uint32_t m_RxTimeout; 			//超时时间
 };
 /**************************************************************************
 * Global Variable Declaration

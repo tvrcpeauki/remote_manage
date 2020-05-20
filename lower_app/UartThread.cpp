@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2020-5-4      zc           the first version
+ * 2020-5-20     zc           Code standardization 
  */
 
 /**
@@ -13,8 +14,8 @@
  */
 /*@{*/
 
-#include "include/uart_task.h"
-#include "include/app_task.h"
+#include "include/UartThread.h"
+#include "include/ApplicationThread.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -27,11 +28,11 @@
 /**************************************************************************
 * Local static Variable Declaration
 ***************************************************************************/
-static uart_protocol_info *upi_ptr; //uart模块管理信息指针
+static CUartProtocolInfo *pUartProtocolInfo; //uart模块管理信息指针
 
-static uint8_t 	rx_buffer[BUFFER_SIZE];
-static uint8_t  tx_buffer[BUFFER_SIZE];
-static uint8_t 	com_fd;
+static uint8_t 	nRxCacheBuffer[BUFFER_SIZE];
+static uint8_t  nTxCacheBuffer[BUFFER_SIZE];
+static uint8_t 	nComFd;
 
 static const char DeviceList[][20] = {
 	TTY_DEVICE,
@@ -44,7 +45,7 @@ static const char DeviceList[][20] = {
 /**************************************************************************
 * Local Function
 ***************************************************************************/
-static void *uart_loop_task(void *arg);
+static void *UartLoopThread(void *arg);
 static int set_opt(int, int, int, char, int);
 
 /**************************************************************************
@@ -57,25 +58,28 @@ static int set_opt(int, int, int, char, int);
  *  
  * @return NULL
  */
-void uart_task_init(void)
+void UartThreadInit(void)
 {
-	int err;
+	int nErr;
 	pthread_t tid1;
 	const char *pDevice;
 
 	pDevice =  DeviceList[0];
-	if((com_fd = open(pDevice, O_RDWR|O_NOCTTY|O_NDELAY))<0){	
+	if((nComFd = open(pDevice, O_RDWR|O_NOCTTY|O_NDELAY))<0){	
 		USR_DEBUG("open %s is failed\n", pDevice);
+		return;
 	}
 	else{
-		set_opt(com_fd, 115200, 8, 'N', 1);
+		set_opt(nComFd, 115200, 8, 'N', 1);
 		USR_DEBUG("open %s success!\t\n", pDevice);
 	}
-	upi_ptr = new uart_protocol_info(rx_buffer, tx_buffer, &rx_buffer[FRAME_HEAD_SIZE], BUFSIZ);
 
-	err = pthread_create(&tid1, NULL, uart_loop_task, NULL);
-	if(err != 0){
-		USR_DEBUG("uart task thread create err, %d\n", err);
+	//创建UART协议管理对象
+	pUartProtocolInfo = new CUartProtocolInfo(nRxCacheBuffer, nTxCacheBuffer, &nRxCacheBuffer[FRAME_HEAD_SIZE], BUFSIZ);
+
+	nErr = pthread_create(&tid1, NULL, UartLoopThread, NULL);
+	if(nErr != 0){
+		USR_DEBUG("uart task thread create nErr, %d\n", nErr);
 	}
 }
 
@@ -86,22 +90,20 @@ void uart_task_init(void)
  *  
  * @return NULL
  */
-static void *uart_loop_task(void *arg)
+static void *UartLoopThread(void *arg)
 {
-	int flag;
+	int nFlag;
 
 	USR_DEBUG("Uart Main Task Start\n");
-	write(com_fd, "Uart Start OK!\n", strlen("Uart Start OK!\n"));
+	write(nComFd, "Uart Start OK!\n", strlen("Uart Start OK!\n"));
 
 	for(;;){	   
-		flag = upi_ptr->check_receive_data(com_fd);
-		if(flag == RT_OK)
-		{
-			upi_ptr->execute_command(com_fd);
+		nFlag = pUartProtocolInfo->CheckRxBuffer(nComFd);
+		if(nFlag == RT_OK){
+			pUartProtocolInfo->ExecuteCommand(nComFd);
 		}
-		else
-		{
-			usleep(10); //通讯结束让出线程
+		else{
+			usleep(100); //通讯结束让出线程
 		}
 	}
 }
@@ -117,12 +119,12 @@ static void *uart_loop_task(void *arg)
  *  
  * @return NULL
  */
-static int set_opt(int fd, int nSpeed, int nBits, char nEvent, int nStop)
+static int set_opt(int nFd, int nSpeed, int nBits, char nEvent, int nStop)
 {
 	struct termios newtio;
 	struct termios oldtio;
 
-	if  (tcgetattr(fd,&oldtio)  !=  0) { 
+	if  (tcgetattr(nFd, &oldtio)  !=  0) { 
 		perror("SetupSerial 1");
 		return -1;
 	}
@@ -197,8 +199,8 @@ static int set_opt(int fd, int nSpeed, int nBits, char nEvent, int nStop)
 	newtio.c_cflag |=  CSTOPB;
 	newtio.c_cc[VTIME]  = 0;
 	newtio.c_cc[VMIN] = 0;
-	tcflush(fd,TCIFLUSH);
-	if((tcsetattr(fd,TCSANOW,&newtio))!=0)
+	tcflush(nFd, TCIFLUSH);
+	if((tcsetattr(nFd, TCSANOW,&newtio))!=0)
 	{
 		perror("com set error");
 		return -1;

@@ -13,7 +13,7 @@
  */
 /*@{*/
 
-#include "led.h"
+#include "Led.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -38,17 +38,24 @@
 /**************************************************************************
 * Function
 ***************************************************************************/
-void led_convert(uint8_t work)
+/**
+ * LED开关转换函数
+ * 
+ * @param nBeepStatus 设置LED的开关状态
+ *  
+ * @return NULL
+ */
+void LedStatusConvert(uint8_t nLedStatus)
 {
-    int fd;
-    uint8_t val;
+    int nFd;
+    uint8_t nVal;
 
-    USR_DEBUG("led write:%d\n", work);
-    fd = open(LED_DEVICE, O_RDWR | O_NDELAY);
-    if(fd != -1)
+    DRIVER_DEBUG("led write:%d\n", nLedStatus);
+    nFd = open(LED_DEVICE, O_RDWR | O_NDELAY);
+    if(nFd != -1)
     {
-        val = work;
-        write(fd, &val, 1);  //将数据写入LED
-        close(fd);
+        nVal = nLedStatus;
+        write(nFd, &nVal, 1);  //将数据写入LED
+        close(nFd);
     }
 }

@@ -1,4 +1,4 @@
-Object=main.o app_task.o uart_task.o led.o protocol.o beep.o
+Object=main.o ApplicationThread.o UartThread.o UsrProtocol.o Led.o Beep.o
 CPPFLAG=
 CLIBFLAG=-lpthread
 CC=arm-linux-gnueabihf-g++
@@ -11,20 +11,20 @@ $(TARGET):$(Object)
 main.o:main.cpp
 	$(CC) $(CPPFLAG) -c main.cpp
 
-app_task.o:app_task.cpp
-	$(CC) $(CPPFLAG) -c app_task.cpp
+ApplicationThread.o:ApplicationThread.cpp
+	$(CC) $(CPPFLAG) -c ApplicationThread.cpp
 
-uart_task.o:uart_task.cpp
-	$(CC) $(CPPFLAG) -c uart_task.cpp
+UartThread.o:UartThread.cpp
+	$(CC) $(CPPFLAG) -c UartThread.cpp
 
-led.o:driver/led.cpp
-	$(CC) $(CPPFLAG) -c driver/led.cpp
+UsrProtocol.o:UsrProtocol.cpp
+	$(CC) $(CPPFLAG) -c UsrProtocol.cpp
 
-beep.o:driver/beep.cpp
-	$(CC) $(CPPFLAG) -c driver/beep.cpp
+Led.o:driver/Led.cpp
+	$(CC) $(CPPFLAG) -c driver/Led.cpp
 
-protocol.o:protocol.cpp
-	$(CC) $(CPPFLAG) -c protocol.cpp
+Beep.o:driver/Beep.cpp
+	$(CC) $(CPPFLAG) -c driver/Beep.cpp
 
 .PHYONE: clean
 clean:

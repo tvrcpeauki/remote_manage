@@ -6,6 +6,7 @@
  * Change Logs:
  * Date         Author       Notes
  * 2020-5-4     zc           the first version
+ * 2020-5-20     zc           Code standardization 
  */
 
 /**
@@ -19,8 +20,8 @@
 * Include Header Files
 ***************************************************************************/
 #include <pthread.h>
-#include<stdlib.h>
-#include "typedef.h"
+#include <stdlib.h>
+#include "UsrTypeDef.h"
 
 /**************************************************************************
 * Global Macro Definition
@@ -37,18 +38,19 @@
 /**************************************************************************
 * Global Type Definition
 ***************************************************************************/
-class app_reg
+class CApplicationReg
 {
 public:
-    app_reg(void);
-        ~app_reg();
-    int hardware_refresh(void);
-    uint16_t get_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *pstart);
-    void set_multiple_val(uint16_t reg_index, uint16_t size, uint8_t *pstart);
-    int diff_modify_reg(uint16_t reg_index, uint16_t size, uint8_t *pstart, uint8_t *psrc);
+    CApplicationReg(void);
+        ~CApplicationReg();
+    
+    int RefreshAllDevice(void);
+    void SetMultipleReg(uint16_t nRegIndex, uint16_t nRegSize, uint8_t *pDataStart);
+    uint16_t GetMultipleReg(uint16_t nRegIndex, uint16_t nRegSize, uint8_t *pDataStart);
+    int DiffSetMultipleReg(uint16_t nRegIndex, uint16_t nRegSize, uint8_t *pDataStart, uint8_t *pDataCompare);
 private:
-    uint8_t reg[REG_NUM];
-    pthread_mutex_t reg_mutex; /*数据读取都要执行该锁*/
+    uint8_t m_RegVal[REG_NUM];
+    pthread_mutex_t m_RegMutex; /*数据读取都要执行该锁*/
 };
 
 /**************************************************************************
@@ -58,9 +60,7 @@ private:
 /**************************************************************************
 * Global Functon Declaration
 ***************************************************************************/
-void app_task_init(void);
-app_reg *get_app_reg(void);
-void set_app_reg(app_reg *arp);
-void *app_loop_task(void *arg);
-void app_module_test(void);
+void ApplicationThreadInit(void);
+CApplicationReg *GetApplicationReg(void);
+void SetApplicationReg(CApplicationReg *pAppReg);
 #endif

@@ -13,7 +13,7 @@
  */
 /*@{*/
 
-#include "beep.h"
+#include "Beep.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -43,23 +43,23 @@
 * Function
 ***************************************************************************/
 /**
- * beep切换函数
+ * beep开关转换函数
  * 
- * @param NULL
+ * @param nBeepStatus 设置蜂鸣器的开关状态
  *  
  * @return NULL
  */
-void beep_convert(uint8_t work)
+void BeepStatusCovert(uint8_t nBeepStatus)
 {
-    int fd;
-    uint8_t val;
+    int nFd;
+    uint8_t nVal;
 
-    USR_DEBUG("beep write:%d\n", work);
-    fd = open(BEEP_DEVICE, O_RDWR | O_NDELAY);
-    if(fd != -1)
+    DRIVER_DEBUG("beep write:%d\n", nBeepStatus);
+    nFd = open(BEEP_DEVICE, O_RDWR | O_NDELAY);
+    if(nFd != -1)
     {
-        val = work;
-        write(fd, &val, 1);  //将数据写入LED
-        close(fd);
+        nVal = nBeepStatus;
+        write(nFd, &nVal, 1);  //将数据写入LED
+        close(nFd);
     }
 }

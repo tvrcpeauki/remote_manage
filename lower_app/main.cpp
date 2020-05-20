@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2020-5-4      zc           the first version
+ * 2020-5-20     zc           Code standardization 
  */
 
 /**
@@ -13,8 +14,8 @@
  */
 /*@{*/
 
-#include "include/uart_task.h"
-#include "include/app_task.h"
+#include "include/UartThread.h"
+#include "include/ApplicationThread.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -35,7 +36,7 @@
 /**************************************************************************
 * Local Function Declaration
 ***************************************************************************/
-static void system_test(void);
+static void SystemTest(void);
 
 /**************************************************************************
 * Function
@@ -60,12 +61,12 @@ int main(int argc, char* argv[])
 	
 	/*任务创建*/
 #if __SYSTEM_DEBUG == 0
-	uart_task_init();
-	app_task_init();
+	UartThreadInit();
+	ApplicationThreadInit();
 	for(;;){
 	}
 #else
-	system_test();
+	SystemTest();
 #endif	
 
 	return result;
@@ -74,17 +75,17 @@ int main(int argc, char* argv[])
 /**
  * 打印调试信息接口
  * 
- * @param ptr 打印数据信息首指针
- * @param size 打印数据长度
+ * @param pArrayBuffer 打印数组的首地址
+ * @param nArraySize   打印数组的长度
  *  
  * @return NULL
  */
-void log_array(uint8_t *ptr, uint16_t size)
+void SystemLogArray(uint8_t *pArrayBuffer, uint16_t nArraySize)
 {
 	uint16_t index;
-	for(index=0; index<size; index++)
+	for(index=0; index<nArraySize; index++)
 	{
-		printf("0x%x ", (int)ptr[index]);
+		printf("0x%x ", (int)pArrayBuffer[index]);
 	}
 	printf("\n");
 }
@@ -96,40 +97,41 @@ const uint8_t test_command[] = {
 	0x5a, 0x01, 0x32, 0x23, 0x00, 0x08, 0x02, 0x00, 
 	0x00, 0x00, 0x03, 0x07, 0x00, 0x01, 0xFF, 0xFF
 };
-class test_protocol_info:public protocol_info
+class CTestProtocolInfo:public CProtocolInfo
 {
 private: 
 	uint16_t read_num;
 	uint16_t total_num;
 
 public:
-	test_protocol_info(uint8_t *p_rx, uint8_t *p_tx, uint8_t *p_rxd, uint16_t max_bs):
-		protocol_info(p_rx, p_tx, p_rxd, max_bs){
+	CTestProtocolInfo(uint8_t *p_rx, uint8_t *p_tx, uint8_t *p_rxd, uint16_t max_bs):
+		CProtocolInfo(p_rx, p_tx, p_rxd, max_bs){
 			total_num = sizeof(test_command);
 			read_num = 0;
 	}
-	~test_protocol_info(){}
+	~CTestProtocolInfo(){}
 
 	void clear(void){
 		read_num = 0;
 	}
 
-	int device_read(int fd, uint8_t *ptr, uint16_t size){
+	int DeviceRead(int nFd, uint8_t *pDataStart, uint16_t nDataSize)
+	{
 		uint16_t left_num, min_num;
 
 		left_num = total_num - read_num;
-
-		min_num = size>=left_num?left_num:size;
-		memcpy(ptr, &test_command[read_num], min_num);
+		min_num = nDataSize>=left_num?left_num:nDataSize;
+		memcpy(pDataStart, &test_command[read_num], min_num);
 		read_num += min_num;
 
 		return min_num;
 	}
 	
-	int device_write(int fd, uint8_t *ptr, uint16_t size){
+	int DeviceWrite(int nFd, uint8_t *pDataStart, uint16_t nDataSize)
+	{
 		printf("send array:");
-		log_array(ptr, size);
-		return size;
+		SystemLogArray(pDataStart, nDataSize);
+		return nDataSize;
 	}
 };
 
@@ -140,29 +142,28 @@ public:
  *  
  * @return NULL
  */
-static void system_test(void)
+static void SystemTest(void)
 {
-	int fd = 0;
-	app_reg *arp_ptr;
-	test_protocol_info *upi_ptr;
-	int flag;
+	int nFd = 0, nFlag;
+	CApplicationReg *pApplicationReg;
+	CTestProtocolInfo *pTesetProtocolInfo;
 
-	arp_ptr = new app_reg();
-	upi_ptr = new test_protocol_info(rx_buffer, tx_buffer, 
+	pApplicationReg = new CApplicationReg();
+	pTesetProtocolInfo = new CTestProtocolInfo(rx_buffer, tx_buffer, 
 								&rx_buffer[FRAME_HEAD_SIZE], BUFFER_SIZE);
 	/*更新设备处理指针*/
-	set_app_reg(arp_ptr);
+	SetApplicationReg(pApplicationReg);
 
 	/*执行接收数据的处理指令*/
-	flag = upi_ptr->check_receive_data(fd);
-	if(flag == RT_OK){
-		upi_ptr->execute_command(fd);
-		arp_ptr->hardware_refresh();
+	nFlag = pTesetProtocolInfo->CheckRxBuffer(nFd);
+	if(nFlag == RT_OK){
+		pTesetProtocolInfo->ExecuteCommand(nFd);
+		pApplicationReg->RefreshAllDevice();
 	}
 
-	delete arp_ptr;
-	delete upi_ptr;
-	arp_ptr = NULL;	
-	upi_ptr = NULL;
+	delete pApplicationReg;
+	delete pTesetProtocolInfo;
+	pApplicationReg = NULL;	
+	pTesetProtocolInfo = NULL;
 }
 #endif
