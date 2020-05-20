@@ -103,7 +103,7 @@ static void *UartLoopThread(void *arg)
 			pUartProtocolInfo->ExecuteCommand(nComFd);
 		}
 		else{
-			usleep(100); //通讯结束让出线程
+			usleep(50); //通讯结束让出线程
 		}
 	}
 }

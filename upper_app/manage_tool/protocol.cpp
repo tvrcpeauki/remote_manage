@@ -2,55 +2,55 @@
 #include "protocol.h"
 #include <QTime>
 
-protocol_info::protocol_info(uint8_t *p_rx, uint8_t *p_tx)
+CProtocolInfo::CProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer)
 {
-    this->rx_ptr = p_rx;
-    this->tx_ptr = p_tx;
+    m_pRxBuffer = pRxBuffer;
+    m_pTxBuffer = pTxBuffer;
 }
 
-int protocol_info::create_send_buf(uint8_t id, uint16_t size, uint8_t *pdata)
+int CProtocolInfo::CreateSendBuffer(uint8_t nId, uint16_t nSize, uint8_t *pStart)
 {
-    if(this->tx_ptr != nullptr)
+    if(m_pTxBuffer != nullptr)
     {
-        uint8_t out_size, index;
-        uint16_t crc_calc;
+        uint8_t nTotalSize, nIndex;
+        uint16_t nCrcVal;
         uint16_t random;
 
         //生成随机数
         qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
         random = qrand()%65536;
-        this->packet_id = random;
+        m_nPacketId = random;
 
-        out_size = 0;
-        this->tx_ptr[out_size++] = PROTOCOL_SEND_HEAD;
-        this->tx_ptr[out_size++] = id;
-        this->tx_ptr[out_size++] = (uint8_t)(random>>8);
-        this->tx_ptr[out_size++] = (uint8_t)(random&0xff);
-        this->tx_ptr[out_size++] = (uint8_t)(size>>8);
-        this->tx_ptr[out_size++] = (uint8_t)(size&0xff);
+        nTotalSize = 0;
+        m_pTxBuffer[nTotalSize++] = PROTOCOL_SEND_HEAD;
+        m_pTxBuffer[nTotalSize++] = nId;
+        m_pTxBuffer[nTotalSize++] = (uint8_t)(random>>8);
+        m_pTxBuffer[nTotalSize++] = (uint8_t)(random&0xff);
+        m_pTxBuffer[nTotalSize++] = (uint8_t)(nSize>>8);
+        m_pTxBuffer[nTotalSize++] = (uint8_t)(nSize&0xff);
 
-        if(size != 0 && pdata != NULL)
+        if(nSize != 0 && pStart != NULL)
         {
-            for(index=0; index<size; index++)
+            for(nIndex=0; nIndex<nSize; nIndex++)
             {
-                this->tx_ptr[out_size++] = *(pdata+index);
+                m_pTxBuffer[nTotalSize++] = *(pStart+nIndex);
             }
         }
 
-        crc_calc = this->crc_calculate(&this->tx_ptr[1], out_size-1);
-        this->tx_ptr[out_size++] = (uint8_t)(crc_calc>>8);
-        this->tx_ptr[out_size++] = (uint8_t)(crc_calc&0xff);
+        nCrcVal = CaclcuCrcVal(&m_pTxBuffer[1], nTotalSize-1);
+        m_pTxBuffer[nTotalSize++] = (uint8_t)(nCrcVal>>8);
+        m_pTxBuffer[nTotalSize++] = (uint8_t)(nCrcVal&0xff);
 
-        return out_size;
+        return nTotalSize;
     }
     else
         return 0;
 }
 
 //crc校验实现
-uint16_t protocol_info::crc_calculate(uint8_t *ptr, int len)
+uint16_t CProtocolInfo::CaclcuCrcVal(uint8_t *pStart, int nSize)
 {
-    if(ptr == NULL || len == 0)
+    if(pStart == NULL || nSize == 0)
     {
         return 0;
     }

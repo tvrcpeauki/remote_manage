@@ -6,7 +6,7 @@
 
 extern MyQueue *uart_queue;
 extern ComInfo *com_info;
-extern uart_protocol_info *uart_protocol_ptr;
+extern CUartProtocolInfo *uart_protocol_ptr;
 
 uint8_t led_on_cmd[] = {
     0x02, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x01
@@ -133,8 +133,8 @@ void init_btn_enable(Ui::MainWindow *ui)
 void MainWindow::on_btn_led_on_clicked()
 {
     QString Strbuf;
-    MyQInfo *info = new MyQInfo(sizeof(led_on_cmd), led_on_cmd);
-    uart_protocol_ptr->set_id(ui->line_edit_dev_id->text().toShort());
+    CQueueInfo *info = new CQueueInfo(sizeof(led_on_cmd), led_on_cmd);
+    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
 
     uart_queue->QueuePost(info);
 }
@@ -143,8 +143,8 @@ void MainWindow::on_btn_led_on_clicked()
 void MainWindow::on_btn_led_off_clicked()
 {
     QString Strbuf;
-    MyQInfo *info = new MyQInfo(sizeof(led_off_cmd), led_off_cmd);
-    uart_protocol_ptr->set_id(ui->line_edit_dev_id->text().toShort());
+    CQueueInfo *info = new CQueueInfo(sizeof(led_off_cmd), led_off_cmd);
+    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
     uart_queue->QueuePost(info);
 }
 
@@ -152,8 +152,8 @@ void MainWindow::on_btn_led_off_clicked()
 void MainWindow::on_btn_beep_on_clicked()
 {
     QString Strbuf;
-    MyQInfo *info = new MyQInfo(sizeof(beep_on_cmd), beep_on_cmd);
-    uart_protocol_ptr->set_id(ui->line_edit_dev_id->text().toShort());
+    CQueueInfo *info = new CQueueInfo(sizeof(beep_on_cmd), beep_on_cmd);
+    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
     uart_queue->QueuePost(info);
 }
 
@@ -161,8 +161,8 @@ void MainWindow::on_btn_beep_on_clicked()
 void MainWindow::on_btn_beep_off_clicked()
 {
     QString Strbuf;
-    MyQInfo *info = new MyQInfo(sizeof(beep_off_cmd), beep_off_cmd);
-    uart_protocol_ptr->set_id(ui->line_edit_dev_id->text().toShort());
+    CQueueInfo *info = new CQueueInfo(sizeof(beep_off_cmd), beep_off_cmd);
+    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
     uart_queue->QueuePost(info);
 }
 

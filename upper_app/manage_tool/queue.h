@@ -5,53 +5,52 @@
 #include <QMutex>
 
 #define MAX_QUEUE            20
-
 #define QUEUE_INFO_OK        0
 #define QUEUE_INFO_FULL     -1
 
-class MyQInfo
+class CQueueInfo
 {
 public:
-    MyQInfo(int s, uint8_t *b){
-        this->size = s;
-        this->buf = b;
+    CQueueInfo(int nSize, uint8_t *pBuffer){
+        m_nSize = nSize;
+        m_pBuffer = pBuffer;
     };
-    ~MyQInfo(){};
-    int size;
-    uint8_t *buf;
+    ~CQueueInfo(){};
+    int m_nSize;
+    uint8_t *m_pBuffer;
 };
 
 class MyQueue
 {
 public:
     MyQueue(){
-        this->freelist = MAX_QUEUE;
-        this->write_index = 0;
-        this->read_index = 0;
-        this->lock_mutex = new QMutex;
+        m_nFreeList = MAX_QUEUE;
+        m_nWriteIndex = 0;
+        m_nReadIndex = 0;
+        m_qLockMutex = new QMutex;
     }
     ~MyQueue(){
     };
 
     bool isEmpty(){
-        int size;
-        lock_mutex->unlock();
-        size = this->freelist;
-        lock_mutex->lock();
+        int m_nSize;
+        m_qLockMutex->unlock();
+        m_nSize = m_nFreeList;
+        m_qLockMutex->lock();
 
-        if(size == MAX_QUEUE){
+        if(m_nSize == MAX_QUEUE){
             return true;
         }
         return false;
     }
-    int QueuePost(MyQInfo *Info);
-    MyQInfo *QueuePend();
+    int QueuePost(CQueueInfo *Info);
+    CQueueInfo *QueuePend();
 private:
-    volatile int freelist;
-    volatile int write_index;
-    volatile int read_index;
-    MyQInfo *qinfo_ptr[MAX_QUEUE];
-    QMutex *lock_mutex;
+    volatile int m_nFreeList;
+    volatile int m_nWriteIndex;
+    volatile int m_nReadIndex;
+    CQueueInfo *qinfo_ptr[MAX_QUEUE];
+    QMutex *m_qLockMutex;
 };
 
 #endif // QUEUE_H

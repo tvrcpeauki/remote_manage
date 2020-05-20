@@ -7,21 +7,21 @@
 #include "ui_mainwindow.h"
 #include "protocol.h"
 
-class uart_protocol_info:public protocol_info
+class CUartProtocolInfo:public CProtocolInfo
 {
 public:
-    uart_protocol_info(uint8_t *p_rx, uint8_t *p_tx):
-        protocol_info(p_rx, p_tx){
+    CUartProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer):
+        CProtocolInfo(pRxBuffer, pTxBuffer){
 
     }
-    ~uart_protocol_info(){}
+    ~CUartProtocolInfo(){}
 
-    int device_read(uint8_t *ptr, uint16_t max_size);
-    int device_write(uint8_t *ptr, uint16_t size);
-    uint16_t get_id(void){
+    int DeviceRead(uint8_t *pStart, uint16_t nMaxSize);
+    int DeviceWrite(uint8_t *pStart, uint16_t nSize);
+    uint16_t GetId(void){
         return id;
     }
-    void set_id(uint16_t cur_id){
+    void SetId(uint16_t cur_id){
         id = cur_id;
     }
 

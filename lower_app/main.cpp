@@ -64,6 +64,7 @@ int main(int argc, char* argv[])
 	UartThreadInit();
 	ApplicationThreadInit();
 	for(;;){
+		sleep(10);
 	}
 #else
 	SystemTest();

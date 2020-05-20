@@ -7,21 +7,21 @@
 
 #define BUFF_CACHE_SIZE     1200
 
-class protocol_info
+class CProtocolInfo
 {
 public:
-    protocol_info(uint8_t *p_rx, uint8_t *p_tx);
-        ~protocol_info();
-    int check_receive_data(void);
-    int create_send_buf(uint8_t id, uint16_t size, uint8_t *pdata);
-    uint16_t crc_calculate(uint8_t *ptr, int len);
+    CProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer);
+        ~CProtocolInfo();
+    int CheckReceiveData(void);
+    int CreateSendBuffer(uint8_t nId, uint16_t nSize, uint8_t *pStart);
+    uint16_t CaclcuCrcVal(uint8_t *pStart, int nSize);
 
-    virtual int device_read(uint8_t *ptr, uint16_t size) = 0;
-    virtual int device_write(uint8_t *ptr, uint16_t size) = 0;
+    virtual int DeviceRead(uint8_t *pStart, uint16_t nMaxSize) = 0;
+    virtual int DeviceWrite(uint8_t *pStart, uint16_t nSize) = 0;
 private:
-    uint8_t *rx_ptr;
-    uint8_t *tx_ptr;
-    uint16_t packet_id;
+    uint8_t *m_pRxBuffer;
+    uint8_t *m_pTxBuffer;
+    uint16_t m_nPacketId;
 };
 
 #endif // PROTOCOL_H

@@ -4,43 +4,43 @@
 #include <QTime>
 #include <QThread>
 
-int MyQueue::QueuePost(MyQInfo *info)
+int MyQueue::QueuePost(CQueueInfo *info)
 {
-    if(this->freelist == 0)
+    if(m_nFreeList == 0)
     {
         return QUEUE_INFO_FULL;
     }
 
-    this->lock_mutex->lock();
-    this->qinfo_ptr[write_index] = info;
-    this->write_index++;
+    m_qLockMutex->lock();
+    qinfo_ptr[m_nWriteIndex] = info;
+    m_nWriteIndex++;
 
     //队列循环
-    if(this->write_index == MAX_QUEUE){
-        this->write_index = 0;
+    if(m_nWriteIndex == MAX_QUEUE){
+        m_nWriteIndex = 0;
     }
-    this->freelist--;
-    this->lock_mutex->unlock();
+    m_nFreeList--;
+    m_qLockMutex->unlock();
 
     return QUEUE_INFO_OK;
 }
 
-MyQInfo *MyQueue::QueuePend()
+CQueueInfo *MyQueue::QueuePend()
 {
-    MyQInfo *info = nullptr;
+    CQueueInfo *info = nullptr;
 
-    if(this->freelist < MAX_QUEUE)
+    if(m_nFreeList < MAX_QUEUE)
     {
-        this->lock_mutex->lock();
-        info = this->qinfo_ptr[read_index];
-        this->read_index++;
+        m_qLockMutex->lock();
+        info = qinfo_ptr[m_nReadIndex];
+        m_nReadIndex++;
 
         //队列循环
-        if(this->read_index == MAX_QUEUE){
-            this->read_index = 0;
+        if(m_nReadIndex == MAX_QUEUE){
+            m_nReadIndex = 0;
         }
-        this->freelist++;
-        this->lock_mutex->unlock();
+        m_nFreeList++;
+        m_qLockMutex->unlock();
     }
     else{
         xtime time;

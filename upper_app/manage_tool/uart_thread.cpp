@@ -4,7 +4,7 @@
 #include "mainwindow.h"
 
 MyQueue *uart_queue;
-uart_protocol_info *uart_protocol_ptr;
+CUartProtocolInfo *uart_protocol_ptr;
 ComInfo *com_info;
 uint8_t rx_buffer[BUFF_CACHE_SIZE];
 uint8_t tx_buffer[BUFF_CACHE_SIZE];
@@ -14,16 +14,16 @@ uart_thread::uart_thread(QObject *parent):QThread(parent)
     this->isStop = 0;
 }
 
+//关闭任务
 void uart_thread::closeThread()
 {
     this->isStop = 1;
 }
 
-
 //任务执行函数
 void uart_thread::run()
 {
-    MyQInfo *info;
+    CQueueInfo *info;
     int len;
     QString Sendbuf = "";
 
@@ -37,16 +37,16 @@ void uart_thread::run()
         {
             if(com_info->com_status)
             {
-                len = uart_protocol_ptr->create_send_buf(uart_protocol_ptr->get_id(), info->size, info->buf);
+                len = uart_protocol_ptr->CreateSendBuffer(uart_protocol_ptr->GetId(), info->m_nSize, info->m_pBuffer);
                 Sendbuf += byteArrayToHexString("Sendbuf:", tx_buffer, len, "\n");
-                uart_protocol_ptr->device_write(tx_buffer, len);
+                uart_protocol_ptr->DeviceWrite(tx_buffer, len);
 
                 //通知主线程更新窗口
                 emit send_edit_test(Sendbuf);
                 Sendbuf.clear();
                 while(1)
                 {
-                    len = uart_protocol_ptr->device_read(rx_buffer, BUFF_CACHE_SIZE);
+                    len = uart_protocol_ptr->DeviceRead(rx_buffer, BUFF_CACHE_SIZE);
                     if(len != 0)
                         break;
                 }
@@ -64,24 +64,23 @@ void uart_thread::run()
     }
 }
 
-
-int uart_protocol_info::device_write(uint8_t *ptr, uint16_t size)
+//设备写数据
+int CUartProtocolInfo::DeviceWrite(uint8_t *pStart, uint16_t nSize)
 {
-    com_info->com->write((char *)ptr, size);
-    return size;
+    com_info->com->write((char *)pStart, nSize);
+    return nSize;
 }
 
-int uart_protocol_info::device_read(uint8_t *ptr, uint16_t max_size)
+//设备读数据
+int CUartProtocolInfo::DeviceRead(uint8_t *pStart, uint16_t nMaxSize)
 {
-    return com_info->com->read((char *)ptr, max_size);
+    return com_info->com->read((char *)pStart, nMaxSize);
 }
-
-int device_write(uint8_t *ptr, uint16_t size);
 
 //任务初始化
 void uart_thread_init(void)
 {
-    uart_protocol_ptr = new uart_protocol_info(rx_buffer, tx_buffer);
+    uart_protocol_ptr = new CUartProtocolInfo(rx_buffer, tx_buffer);
     uart_queue = new MyQueue();
 }
 
