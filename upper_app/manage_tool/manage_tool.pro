@@ -22,14 +22,14 @@ SOURCES += \
     mainwindow.cpp \
     protocol.cpp \
     queue.cpp \
-    uart_thread.cpp
+    uartthread.cpp
 
 HEADERS += \
     mainwindow.h \
     protocol.h \
     queue.h \
     typedef.h \
-    uart_thread.h
+    uartthread.h
 
 FORMS += \
     mainwindow.ui

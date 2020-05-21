@@ -4,7 +4,7 @@
 #include <QTime>
 #include <QThread>
 
-int MyQueue::QueuePost(CQueueInfo *info)
+int CUserQueue::QueuePost(CQueueInfo *info)
 {
     if(m_nFreeList == 0)
     {
@@ -25,7 +25,7 @@ int MyQueue::QueuePost(CQueueInfo *info)
     return QUEUE_INFO_OK;
 }
 
-CQueueInfo *MyQueue::QueuePend()
+CQueueInfo *CUserQueue::QueuePend()
 {
     CQueueInfo *info = nullptr;
 

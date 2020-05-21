@@ -1,12 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "protocol.h"
-#include "uart_thread.h"
+#include "uartthread.h"
 #include "queue.h"
 
-extern MyQueue *uart_queue;
-extern ComInfo *com_info;
-extern CUartProtocolInfo *uart_protocol_ptr;
+static CUserQueue *pMainUartQueue;
+static CUartProtocolInfo *pMainUartProtocolInfo;
+static CComInfo *com_info;
 
 uint8_t led_on_cmd[] = {
     0x02, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x01
@@ -81,14 +81,16 @@ void MainWindow::init()
     ui->line_edit_dev_id->setValidator( validator_id );
 
     //启动应用相关的处理
-    com_info = new ComInfo();
-    uart_thread_init();
+    com_info = new CComInfo();
+    UartThreadInit();
+    pMainUartQueue = GetUartQueue();
+    pMainUartProtocolInfo = GetUartProtocolInfo();
 
     //默认按键配置不可操作
     init_btn_disable(ui);
     ui->btn_uart_close->setDisabled(true);
 
-    uart_thread *mythread = new uart_thread();
+    CUartThread *mythread = new CUartThread();
 
     //信号槽通讯连接
     connect(mythread, SIGNAL(send_edit_recv(QString)), this, SLOT(append_text_edit_recv(QString)));
@@ -134,9 +136,8 @@ void MainWindow::on_btn_led_on_clicked()
 {
     QString Strbuf;
     CQueueInfo *info = new CQueueInfo(sizeof(led_on_cmd), led_on_cmd);
-    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
-
-    uart_queue->QueuePost(info);
+    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
+    pMainUartQueue->QueuePost(info);
 }
 
 //关闭LED
@@ -144,8 +145,8 @@ void MainWindow::on_btn_led_off_clicked()
 {
     QString Strbuf;
     CQueueInfo *info = new CQueueInfo(sizeof(led_off_cmd), led_off_cmd);
-    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
-    uart_queue->QueuePost(info);
+    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
+    pMainUartQueue->QueuePost(info);
 }
 
 //打开蜂鸣器
@@ -153,8 +154,8 @@ void MainWindow::on_btn_beep_on_clicked()
 {
     QString Strbuf;
     CQueueInfo *info = new CQueueInfo(sizeof(beep_on_cmd), beep_on_cmd);
-    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
-    uart_queue->QueuePost(info);
+    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
+    pMainUartQueue->QueuePost(info);
 }
 
 //关闭蜂鸣器
@@ -162,8 +163,8 @@ void MainWindow::on_btn_beep_off_clicked()
 {
     QString Strbuf;
     CQueueInfo *info = new CQueueInfo(sizeof(beep_off_cmd), beep_off_cmd);
-    uart_protocol_ptr->SetId(ui->line_edit_dev_id->text().toShort());
-    uart_queue->QueuePost(info);
+    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
+    pMainUartQueue->QueuePost(info);
 }
 
 //关闭串口
@@ -234,4 +235,9 @@ QString byteArrayToHexString(QString head, uint8_t* str, uint16_t size, QString 
     result += tail;
     result.chop(1);
     return result;
+}
+
+CComInfo *GetComInfo(void)
+{
+    return com_info;
 }

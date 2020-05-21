@@ -20,16 +20,16 @@ public:
     uint8_t *m_pBuffer;
 };
 
-class MyQueue
+class CUserQueue
 {
 public:
-    MyQueue(){
+    CUserQueue(){
         m_nFreeList = MAX_QUEUE;
         m_nWriteIndex = 0;
         m_nReadIndex = 0;
         m_qLockMutex = new QMutex;
     }
-    ~MyQueue(){
+    ~CUserQueue(){
     };
 
     bool isEmpty(){

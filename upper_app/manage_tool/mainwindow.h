@@ -35,12 +35,12 @@ private:
     Ui::MainWindow *ui;
 };
 
-class ComInfo
+class CComInfo
 {
 public:
-    ComInfo(){
+    CComInfo(){
     }
-    ~ComInfo(){
+    ~CComInfo(){
     }
 
     QextSerialPort *com;
@@ -48,5 +48,6 @@ public:
 };
 
 QString byteArrayToHexString(QString head, uint8_t* str, uint16_t size, QString tail);
+CComInfo *GetComInfo(void);
 
 #endif // MAINWINDOW_H
