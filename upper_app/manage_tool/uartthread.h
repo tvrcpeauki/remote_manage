@@ -6,28 +6,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "protocol.h"
-#include "queue.h"
+#include "qextserialport/qextserialport.h"
 
-class CUartProtocolInfo:public CProtocolInfo
+class CComInfo
 {
 public:
-    CUartProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer):
-        CProtocolInfo(pRxBuffer, pTxBuffer){
-
+    CComInfo(){
     }
-    ~CUartProtocolInfo(){}
-
-    int DeviceRead(uint8_t *pStart, uint16_t nMaxSize);
-    int DeviceWrite(uint8_t *pStart, uint16_t nSize);
-    uint16_t GetId(void){
-        return m_nId;
-    }
-    void SetId(uint16_t nCurId){
-        m_nId = nCurId;
+    ~CComInfo(){
     }
 
-private:
-    uint16_t m_nId;
+    QextSerialPort *com;
+    bool com_status;
 };
 
 class CUartThread:public QThread
@@ -49,7 +39,39 @@ private:
     volatile bool m_nIsStop;
 };
 
+class CUartProtocolInfo:public CProtocolInfo
+{
+public:
+    CUartProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer, CComInfo *pComInfo,
+                     CUserQueue *pUartQueue, CUartThread *pUartThread):
+        CProtocolInfo(pRxBuffer, pTxBuffer){
+        m_pComInfo = pComInfo;
+        m_pUartQueue = pUartQueue;
+        m_pThread = pUartThread;
+    }
+    ~CUartProtocolInfo(){
+        delete m_pComInfo;
+        delete m_pUartQueue;
+        delete m_pThread;
+    }
+
+    CComInfo *m_pComInfo;
+    CUserQueue *m_pUartQueue;
+    CUartThread *m_pThread;
+
+    int DeviceRead(uint8_t *pStart, uint16_t nMaxSize);
+    int DeviceWrite(uint8_t *pStart, uint16_t nSize);
+    uint16_t GetId(void){
+        return m_nId;
+    }
+    void SetId(uint16_t nCurId){
+        m_nId = nCurId;
+    }
+
+private:
+    uint16_t m_nId;
+};
+
 void UartThreadInit(void);
-CUserQueue *GetUartQueue(void);
 CUartProtocolInfo *GetUartProtocolInfo(void);
 #endif // CUartThread_H_H

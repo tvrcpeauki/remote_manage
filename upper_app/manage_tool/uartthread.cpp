@@ -1,8 +1,7 @@
-//uart任务处理
+﻿//uart任务处理
 #include "uartthread.h"
 #include "mainwindow.h"
 
-static CUserQueue *pUartQueue;
 static CUartProtocolInfo *pUartProtocolInfo;
 static uint8_t rx_buffer[BUFF_CACHE_SIZE];
 static uint8_t tx_buffer[BUFF_CACHE_SIZE];
@@ -22,22 +21,20 @@ void CUartThread::CloseThread()
 //任务执行函数
 void CUartThread::run()
 {
-    CQueueInfo *pQueueInfo;
+    SSendBuffer *pQueueInfo;
     int nLen;
     QString Sendbuf = "";
-    CComInfo *pComInfo;
 
     forever{
         if(m_nIsStop)
             return;
 
-        pQueueInfo  = pUartQueue->QueuePend();
+        pQueueInfo  = pUartProtocolInfo->m_pUartQueue->QueuePend();
         if(pQueueInfo != nullptr)
         {
-            pComInfo = GetComInfo();
-            if(pComInfo->com_status)
+            if(pUartProtocolInfo->m_pComInfo->com_status)
             {
-                nLen = pUartProtocolInfo->CreateSendBuffer(pUartProtocolInfo->GetId(), pQueueInfo->m_nSize, pQueueInfo->m_pBuffer);
+                nLen = pUartProtocolInfo->CreateSendBuffer(pUartProtocolInfo->GetId(), pQueueInfo->m_nSize, pQueueInfo->m_pBuffer, pQueueInfo->m_IsWriteThrough);
                 Sendbuf += byteArrayToHexString("Sendbuf:", tx_buffer, nLen, "\n");
                 pUartProtocolInfo->DeviceWrite(tx_buffer, nLen);
 
@@ -67,30 +64,27 @@ void CUartThread::run()
 //设备写数据
 int CUartProtocolInfo::DeviceWrite(uint8_t *pStart, uint16_t nSize)
 {
-    CComInfo *pComInfo;
-    pComInfo = GetComInfo();
-    pComInfo->com->write((char *)pStart, nSize);
+    pUartProtocolInfo->m_pComInfo->com->write((char *)pStart, nSize);
     return nSize;
 }
 
 //设备读数据
 int CUartProtocolInfo::DeviceRead(uint8_t *pStart, uint16_t nMaxSize)
 {
-    CComInfo *pComInfo;
-    pComInfo = GetComInfo();
-    return pComInfo->com->read((char *)pStart, nMaxSize);
+    return pUartProtocolInfo->m_pComInfo->com->read((char *)pStart, nMaxSize);
 }
 
 //任务初始化
 void UartThreadInit(void)
 {
-    pUartProtocolInfo = new CUartProtocolInfo(rx_buffer, tx_buffer);
-    pUartQueue = new CUserQueue();
-}
+    CComInfo *pComInfo;
+    CUserQueue *pUartQueue;
+    CUartThread *pUartThread;
 
-CUserQueue *GetUartQueue(void)
-{
-    return pUartQueue;
+    pComInfo = new CComInfo();
+    pUartThread = new CUartThread();
+    pUartQueue = new CUserQueue();
+    pUartProtocolInfo = new CUartProtocolInfo(rx_buffer, tx_buffer, pComInfo, pUartQueue, pUartThread);
 }
 
 CUartProtocolInfo *GetUartProtocolInfo(void)

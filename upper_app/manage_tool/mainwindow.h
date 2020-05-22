@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QWidget>
-#include "qextserialport/qextserialport.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,23 +31,11 @@ private slots:
     void on_btn_uart_close_clicked();
     void on_btn_uart_open_clicked();
 
+    void on_btn_send_cmd_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
 
-class CComInfo
-{
-public:
-    CComInfo(){
-    }
-    ~CComInfo(){
-    }
-
-    QextSerialPort *com;
-    bool com_status;
-};
-
 QString byteArrayToHexString(QString head, uint8_t* str, uint16_t size, QString tail);
-CComInfo *GetComInfo(void);
-
 #endif // MAINWINDOW_H

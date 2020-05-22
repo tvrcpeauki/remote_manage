@@ -1,12 +1,9 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "protocol.h"
 #include "uartthread.h"
-#include "queue.h"
 
-static CUserQueue *pMainUartQueue;
 static CUartProtocolInfo *pMainUartProtocolInfo;
-static CComInfo *com_info;
 
 uint8_t led_on_cmd[] = {
     0x02, 0x00, 0x00, 0x00, 0x03, 0x03, 0x00, 0x01
@@ -80,22 +77,17 @@ void MainWindow::init()
     QValidator *validator_id = new QRegExpValidator(regx,  ui->line_edit_dev_id);
     ui->line_edit_dev_id->setValidator( validator_id );
 
-    //启动应用相关的处理
-    com_info = new CComInfo();
-    UartThreadInit();
-    pMainUartQueue = GetUartQueue();
-    pMainUartProtocolInfo = GetUartProtocolInfo();
-
     //默认按键配置不可操作
     init_btn_disable(ui);
     ui->btn_uart_close->setDisabled(true);
 
-    CUartThread *mythread = new CUartThread();
-
     //信号槽通讯连接
-    connect(mythread, SIGNAL(send_edit_recv(QString)), this, SLOT(append_text_edit_recv(QString)));
-    connect(mythread, SIGNAL(send_edit_test(QString)), this, SLOT(append_text_edit_test(QString)));
-    mythread->start();
+    //启动应用相关的处理
+    UartThreadInit();
+    pMainUartProtocolInfo = GetUartProtocolInfo();
+    connect(pMainUartProtocolInfo->m_pThread, SIGNAL(send_edit_recv(QString)), this, SLOT(append_text_edit_recv(QString)));
+    connect(pMainUartProtocolInfo->m_pThread, SIGNAL(send_edit_test(QString)), this, SLOT(append_text_edit_test(QString)));
+    pMainUartProtocolInfo->m_pThread->start();
 }
 
 void MainWindow::append_text_edit_recv(QString s)
@@ -108,7 +100,7 @@ void MainWindow::append_text_edit_test(QString s)
     ui->text_edit_test->append(s);
 }
 
-//功能函数
+//关闭应用后能操作按键配置
 void init_btn_disable(Ui::MainWindow *ui)
 {
     ui->btn_led_on->setDisabled(true);
@@ -118,8 +110,10 @@ void init_btn_disable(Ui::MainWindow *ui)
     ui->btn_beep_off->setDisabled(true);
     ui->btn_refresh->setDisabled(true);
     ui->btn_send_cmd->setDisabled(true);
+    ui->line_edit_dev_id->setReadOnly(false);
 }
 
+//开启应用后能操作按键配置
 void init_btn_enable(Ui::MainWindow *ui)
 {
     ui->btn_led_on->setEnabled(true);
@@ -129,85 +123,84 @@ void init_btn_enable(Ui::MainWindow *ui)
     ui->btn_beep_off->setEnabled(true);
     ui->btn_refresh->setEnabled(true);
     ui->btn_send_cmd->setEnabled(true);
+    ui->line_edit_dev_id->setReadOnly(true);
 }
 
 //打开LED
 void MainWindow::on_btn_led_on_clicked()
 {
     QString Strbuf;
-    CQueueInfo *info = new CQueueInfo(sizeof(led_on_cmd), led_on_cmd);
-    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
-    pMainUartQueue->QueuePost(info);
+    SSendBuffer *info = new SSendBuffer(sizeof(led_on_cmd), led_on_cmd, false);
+    pMainUartProtocolInfo->m_pUartQueue->QueuePost(info);
 }
 
 //关闭LED
 void MainWindow::on_btn_led_off_clicked()
 {
-    QString Strbuf;
-    CQueueInfo *info = new CQueueInfo(sizeof(led_off_cmd), led_off_cmd);
-    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
-    pMainUartQueue->QueuePost(info);
+    SSendBuffer *info = new SSendBuffer(sizeof(led_off_cmd), led_off_cmd, false);
+    pMainUartProtocolInfo->m_pUartQueue->QueuePost(info);
 }
 
 //打开蜂鸣器
 void MainWindow::on_btn_beep_on_clicked()
 {
-    QString Strbuf;
-    CQueueInfo *info = new CQueueInfo(sizeof(beep_on_cmd), beep_on_cmd);
-    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
-    pMainUartQueue->QueuePost(info);
+    SSendBuffer *info = new SSendBuffer(sizeof(beep_on_cmd), beep_on_cmd, false);
+    pMainUartProtocolInfo->m_pUartQueue->QueuePost(info);
 }
 
 //关闭蜂鸣器
 void MainWindow::on_btn_beep_off_clicked()
 {
-    QString Strbuf;
-    CQueueInfo *info = new CQueueInfo(sizeof(beep_off_cmd), beep_off_cmd);
-    pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
-    pMainUartQueue->QueuePost(info);
+    SSendBuffer *info = new SSendBuffer(sizeof(beep_off_cmd), beep_off_cmd, false);
+    pMainUartProtocolInfo->m_pUartQueue->QueuePost(info);
 }
 
 //关闭串口
 void MainWindow::on_btn_uart_close_clicked()
 {
     init_btn_disable(ui);
-    com_info->com->close();
-    com_info->com->deleteLater();
+    pMainUartProtocolInfo->m_pComInfo->com->close();
+    pMainUartProtocolInfo->m_pComInfo->com->deleteLater();
     ui->btn_uart_close->setDisabled(true);
     ui->btn_uart_open->setEnabled(true);
-    ui->text_edit_test->append("串口关闭");
+    append_text_edit_test(QString::fromLocal8Bit("串口关闭"));
 }
 
 //开启串口
 void MainWindow::on_btn_uart_open_clicked()
 {
-    com_info->com = new QextSerialPort(ui->combo_box_com->currentText(), QextSerialPort::Polling);
-    com_info->com_status = com_info->com->open(QIODevice::ReadWrite);
+    CComInfo *pComInfo;
 
-    if(com_info->com_status)
+    pComInfo = pMainUartProtocolInfo->m_pComInfo;
+    pComInfo->com = new QextSerialPort(ui->combo_box_com->currentText(), QextSerialPort::Polling);
+    pComInfo->com_status = pComInfo->com->open(QIODevice::ReadWrite);
+
+
+    if(pComInfo->com_status)
     {
         //清除缓存区
-        com_info->com->flush();
+        pComInfo->com->flush();
         //设置波特率
-        com_info->com->setBaudRate((BaudRateType)ui->combo_box_baud->currentText().toInt());
+        pComInfo->com->setBaudRate((BaudRateType)ui->combo_box_baud->currentText().toInt());
         //设置数据位
-        com_info->com->setDataBits((DataBitsType)ui->combo_box_data->currentText().toInt());
+        pComInfo->com->setDataBits((DataBitsType)ui->combo_box_data->currentText().toInt());
         //设置校验位
-        com_info->com->setParity((ParityType)ui->combo_box_parity->currentText().toInt());
+        pComInfo->com->setParity((ParityType)ui->combo_box_parity->currentText().toInt());
         //设置停止位
-        com_info->com->setStopBits((StopBitsType)ui->combo_box_stop->currentText().toInt());
-        com_info->com->setFlowControl(FLOW_OFF);
-        com_info->com->setTimeout(10);
+        pComInfo->com->setStopBits((StopBitsType)ui->combo_box_stop->currentText().toInt());
+        pComInfo->com->setFlowControl(FLOW_OFF);
+        pComInfo->com->setTimeout(10);
         init_btn_enable(ui);
+        pMainUartProtocolInfo->SetId(ui->line_edit_dev_id->text().toShort());
         ui->btn_uart_close->setEnabled(true);
         ui->btn_uart_open->setDisabled(true);
-        ui->text_edit_test->append(QString("串口打开成功"));
+        append_text_edit_test(QString::fromLocal8Bit("串口打开成功!"));
     }
     else
     {
-        com_info->com->deleteLater();
-        ui->text_edit_test->append("串口打开失败");
-        com_info->com_status = false;
+        pComInfo->com->deleteLater();
+        pComInfo->com_status = false;
+        append_text_edit_test(QString::fromLocal8Bit("串口打开失败"));
     }
 }
 
@@ -237,7 +230,19 @@ QString byteArrayToHexString(QString head, uint8_t* str, uint16_t size, QString 
     return result;
 }
 
-CComInfo *GetComInfo(void)
+//指令直接发送的命令
+void MainWindow::on_btn_send_cmd_clicked()
 {
-    return com_info;
+    static uint8_t nCacheBuf[256];
+    bool bStatus;
+    uint8_t nSize;
+    QStringList QStrArr = ui->line_edit_cmd->text().split(" ");
+
+    nSize = QStrArr.size();
+    for(int index=0; index<nSize;index++){
+        nCacheBuf[index] = QStrArr[index].toInt(&bStatus, 16);
+    }
+
+    SSendBuffer *info = new SSendBuffer(nSize, nCacheBuf, true);
+    pMainUartProtocolInfo->m_pUartQueue->QueuePost(info);
 }

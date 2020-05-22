@@ -21,20 +21,16 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     protocol.cpp \
-    queue.cpp \
     uartthread.cpp
 
 HEADERS += \
     mainwindow.h \
     protocol.h \
-    queue.h \
     typedef.h \
     uartthread.h
 
 FORMS += \
     mainwindow.ui
-
-include         ($$PWD/qextserialport/qextserialport.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
