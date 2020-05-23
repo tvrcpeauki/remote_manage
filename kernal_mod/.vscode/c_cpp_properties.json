@@ -8,10 +8,8 @@
                 "F:/arm-linux/include/uapi",
                 "F:/arm-linux/tools/include",
                 "F:/arm-linux/tools/include",
-                "F:/arm-linux/arch/ia64/include/uapi",
                 "F:/arm-linux/arch/arm/include/",
                 "F:/arm-linux/arch/arm/include/asm",
-                "F:/arm-linux/arch/x86/include/",
                 "F:/arm-gcc/include",
                 "F:/arm-gcc/arm-linux-gnueabihf/libc/usr/include",
                 "F:/arm-gcc/arm-linux-gnueabihf/libc/usr/include/linux"
@@ -20,7 +18,8 @@
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
-                "__ARM_PCS_VFP"
+                "__ARM_PCS_VFP",
+                "CONFIG_SPARSE_IRQ"
             ],
             "windowsSdkVersion": "8.1",
             "compilerPath": "C:/StudySoftware/VisualStudio 2015/VC/bin/cl.exe",

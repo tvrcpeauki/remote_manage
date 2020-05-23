@@ -20,6 +20,7 @@
 * Include Header Files
 ***************************************************************************/
 #include "UsrTypeDef.h"
+#include "ApplicationThread.h"
 
 /**************************************************************************
 * Global Macro Definition

@@ -41,6 +41,7 @@ void CUartThread::run()
                 //通知主线程更新窗口
                 emit send_edit_test(Sendbuf);
                 Sendbuf.clear();
+
                 while(1)
                 {
                     nLen = pUartProtocolInfo->DeviceRead(rx_buffer, BUFF_CACHE_SIZE);
@@ -59,6 +60,12 @@ void CUartThread::run()
             delete pQueueInfo;
         }
     }
+}
+
+//检测接收到的数据
+int CUartProtocolInfo::CheckReceiveData(void)
+{
+  return 0;
 }
 
 //设备写数据

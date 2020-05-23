@@ -18,14 +18,35 @@
 /***************************************************************************
 * Include Header Files
 ***************************************************************************/
+#include "UsrTypeDef.h"
+#include "UsrProtocol.h"
+#include "ApplicationThread.h"
+#include <sys/socket.h>
 
 /**************************************************************************
 * Global Macro Definition
 ***************************************************************************/
+#define SOCKET_BUFFER_SIZE		1200
 
 /**************************************************************************
 * Global Type Definition
 ***************************************************************************/
+class CSocketProtocolInfo:public CProtocolInfo
+{
+public:
+	CSocketProtocolInfo(uint8_t *pRxCachebuf, uint8_t *pTxCacheBuf, uint8_t *pRxData, uint16_t nMaxSize):
+		CProtocolInfo(pRxCachebuf, pTxCacheBuf, pRxData, nMaxSize){}
+	~CSocketProtocolInfo(){}
+
+	int DeviceRead(int nFd, uint8_t *pDataStart, uint16_t nDataSize)
+	{
+		return recv(nFd, pDataStart, nDataSize, 0);
+	}
+	int DeviceWrite(int nFd, uint8_t *pDataStart, uint16_t nDataSize)
+	{
+		return send(nFd, pDataStart, nDataSize, 0);
+	}
+};
 
 /**************************************************************************
 * Global Variable Declaration

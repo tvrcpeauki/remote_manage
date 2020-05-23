@@ -59,6 +59,7 @@ public:
     CUserQueue *m_pUartQueue;
     CUartThread *m_pThread;
 
+    int CheckReceiveData(void);
     int DeviceRead(uint8_t *pStart, uint16_t nMaxSize);
     int DeviceWrite(uint8_t *pStart, uint16_t nSize);
     uint16_t GetId(void){

@@ -16,6 +16,7 @@
 
 #include "include/UartThread.h"
 #include "include/ApplicationThread.h"
+#include "include/SocketThread.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -63,6 +64,7 @@ int main(int argc, char* argv[])
 #if __SYSTEM_DEBUG == 0
 	UartThreadInit();
 	ApplicationThreadInit();
+	SocketThreadInit();
 	for(;;){
 		sleep(10);
 	}
