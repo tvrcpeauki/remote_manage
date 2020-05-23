@@ -61,6 +61,7 @@ void SocketThreadInit(void)
 	int nErr;
 	pthread_t tid1;
 
+    USR_DEBUG("Socket Thread Start!\n");
     pSocketProtocolInfo = new CSocketProtocolInfo(nRxCacheBuffer, nTxCacheBuffer, 
                         &nRxCacheBuffer[FRAME_HEAD_SIZE], SOCKET_BUFFER_SIZE);
     nErr = pthread_create(&tid1, NULL, SocketLoopThread, NULL);
@@ -85,7 +86,7 @@ static void *SocketLoopThread(void *arg)
     memset((char *)&serverip, 0, sizeof(serverip));
     serverip.sin_family = AF_INET;
     serverip.sin_port = htons(8000);
-    serverip.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serverip.sin_addr.s_addr = inet_addr("192.168.1.108");
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd != -1)
@@ -93,6 +94,7 @@ static void *SocketLoopThread(void *arg)
         result = bind(server_fd, (struct sockaddr *)&serverip, sizeof(serverip));
         if(result != -1)
         {
+            USR_DEBUG("Socket Binding OK, Now Listen...!\n");
             listen(server_fd, 32);
             while(1)
             {
@@ -127,7 +129,7 @@ static void *SocketLoopThread(void *arg)
     {
         SOCKET_DEBUG("socket init failed!\r\n");
     }
-
+    return nullptr;
 }
 
 /**
@@ -168,5 +170,6 @@ static void *SocketDataProcessThread(void *arg)
     SOCKET_DEBUG("socket process success\r\n");
     close(client_fd);
     pthread_detach(pthread_self());
+    return nullptr;
 }
 
