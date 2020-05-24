@@ -55,7 +55,8 @@ int main(int argc, char* argv[])
     int result = 0;
 
     result = daemon(1, 1);
-	if(result < 0){
+	if(result < 0)
+	{
 		perror("daemon\n");
 		return result;
 	}
@@ -85,12 +86,14 @@ int main(int argc, char* argv[])
  */
 void SystemLogArray(uint8_t *pArrayBuffer, uint16_t nArraySize)
 {
+#if __DEBUG_PRINTF == 1
 	uint16_t index;
 	for(index=0; index<nArraySize; index++)
 	{
 		printf("0x%x ", (int)pArrayBuffer[index]);
 	}
 	printf("\n");
+#endif
 }
 
 #if __SYSTEM_DEBUG == 1

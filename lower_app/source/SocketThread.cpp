@@ -65,7 +65,8 @@ void SocketThreadInit(void)
     pSocketProtocolInfo = new CSocketProtocolInfo(nRxCacheBuffer, nTxCacheBuffer, 
                         &nRxCacheBuffer[FRAME_HEAD_SIZE], SOCKET_BUFFER_SIZE);
     nErr = pthread_create(&tid1, NULL, SocketLoopThread, NULL);
-	if(nErr != 0){
+	if(nErr != 0)
+    {
 		USR_DEBUG("uart task thread create nErr, %d\n", nErr);
 	}
 }
@@ -85,8 +86,8 @@ static void *SocketLoopThread(void *arg)
 
     memset((char *)&serverip, 0, sizeof(serverip));
     serverip.sin_family = AF_INET;
-    serverip.sin_port = htons(8000);
-    serverip.sin_addr.s_addr = inet_addr("192.168.1.108");
+    serverip.sin_port = htons(PORT);
+    serverip.sin_addr.s_addr = inet_addr(IP_ADDR);
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd != -1)
@@ -152,11 +153,13 @@ static void *SocketDataProcessThread(void *arg)
     for(;;)
     {	   
 		nFlag = pSocketProtocolInfo->CheckRxBuffer(client_fd);
-		if(nFlag == RT_OK){
+		if(nFlag == RT_OK)
+        {
 			pSocketProtocolInfo->ExecuteCommand(client_fd);
+            pSocketProtocolInfo->SendTxBuffer(client_fd);
             break;
 		}
-        else
+        else if(nFlag == RT_FAIL)
         {
             /*判断是否有数据可读取, 不可读则退出*/
             struct timeval client_timeout = {0, 100};
@@ -164,6 +167,10 @@ static void *SocketDataProcessThread(void *arg)
             if(nFlag < 0){
                 break;
             }
+        }
+        else
+        {
+            break;
         }
 	}
 

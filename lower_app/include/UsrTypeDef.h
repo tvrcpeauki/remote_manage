@@ -39,6 +39,7 @@
 #define RT_FAIL             	0x01
 #define RT_EMPTY            	0x02
 #define RT_TIMEOUT              0x03
+#define RT_INVALID              0x04
 
 /**************************************************************************
 * Global Type Definition
@@ -53,9 +54,20 @@ typedef unsigned int uint32_t;
 /**************************************************************************
 * Global Variable Declaration
 ***************************************************************************/
+//DEVICE
 #define TTY_DEVICE  "/dev/ttymxc2"
 #define LED_DEVICE  "/dev/led"
 #define BEEP_DEVICE "/dev/beep"
+
+//IPAddress
+#define IP_ADDR     "192.168.1.251"
+#define PORT        8000
+
+//UART
+#define BAUD        115200
+#define DATABITS    8
+#define PARITY      'N'
+#define STOPBITS    1
 
 /**************************************************************************
 * Global Functon Declaration

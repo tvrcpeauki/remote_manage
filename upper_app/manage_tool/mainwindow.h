@@ -33,6 +33,10 @@ private slots:
 
     void on_btn_send_cmd_clicked();
 
+    void on_btn_socket_open_clicked();
+
+    void on_btn_socket_close_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

@@ -62,15 +62,6 @@ public:
     int CheckReceiveData(void);
     int DeviceRead(uint8_t *pStart, uint16_t nMaxSize);
     int DeviceWrite(uint8_t *pStart, uint16_t nSize);
-    uint16_t GetId(void){
-        return m_nId;
-    }
-    void SetId(uint16_t nCurId){
-        m_nId = nCurId;
-    }
-
-private:
-    uint16_t m_nId;
 };
 
 void UartThreadInit(void);

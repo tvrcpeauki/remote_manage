@@ -74,8 +74,10 @@ public:
 
     int ExecuteCommand(int nFd);                                			//数据处理和执行
     int CheckRxBuffer(int nFd);                             				//接收数据分析
+	int SendTxBuffer(int nFd);												//发送数据
     int CreateTxBuffer(uint8_t nAck, uint16_t nDataSize, uint8_t *pData);	//创建发送数据包
 	uint16_t CrcCalculate(uint8_t *pDataStart, uint16_t nDataSize);					//数组生成CRC校验数据
+
 
 	/*设备读写函数，因为不同设备的实现可能不同，用纯虚函数*/
 	virtual int DeviceRead(int nFd, uint8_t *pDataStart, uint16_t nDataSize) = 0;   

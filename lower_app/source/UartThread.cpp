@@ -34,10 +34,6 @@ static uint8_t 	nRxCacheBuffer[UART_BUFFER_SIZE];
 static uint8_t  nTxCacheBuffer[UART_BUFFER_SIZE];
 static uint8_t 	nComFd;
 
-static const char DeviceList[][20] = {
-	TTY_DEVICE,
-};
-
 /**************************************************************************
 * Global Variable Declaration
 ***************************************************************************/
@@ -62,16 +58,16 @@ void UartThreadInit(void)
 {
 	int nErr;
 	pthread_t tid1;
-	const char *pDevice;
 
-	pDevice =  DeviceList[0];
-	if((nComFd = open(pDevice, O_RDWR|O_NOCTTY|O_NDELAY))<0){	
-		USR_DEBUG("open %s is failed\n", pDevice);
+	if((nComFd = open(TTY_DEVICE, O_RDWR|O_NOCTTY|O_NDELAY))<0)
+	{	
+		USR_DEBUG("Open %s failed\n", TTY_DEVICE);
 		return;
 	}
-	else{
-		set_opt(nComFd, 115200, 8, 'N', 1);
-		USR_DEBUG("open %s success!\t\n", pDevice);
+	else
+	{
+		set_opt(nComFd, BAUD, DATABITS, PARITY, STOPBITS);
+		USR_DEBUG("Open %s Success!\t\n", TTY_DEVICE);
 	}
 
 	//创建UART协议管理对象
@@ -79,8 +75,9 @@ void UartThreadInit(void)
 						&nRxCacheBuffer[FRAME_HEAD_SIZE], UART_BUFFER_SIZE);
 
 	nErr = pthread_create(&tid1, NULL, UartLoopThread, NULL);
-	if(nErr != 0){
-		USR_DEBUG("uart task thread create nErr, %d\n", nErr);
+	if(nErr != 0)
+	{
+		USR_DEBUG("Uart Task Thread Create Err=%d\n", nErr);
 	}
 }
 
@@ -98,12 +95,16 @@ static void *UartLoopThread(void *arg)
 	USR_DEBUG("Uart Main Task Start\n");
 	write(nComFd, "Uart Start OK!\n", strlen("Uart Start OK!\n"));
 
-	for(;;){	   
+	for(;;)
+	{	   
 		nFlag = pUartProtocolInfo->CheckRxBuffer(nComFd);
-		if(nFlag == RT_OK){
+		if(nFlag == RT_OK)
+		{
 			pUartProtocolInfo->ExecuteCommand(nComFd);
+			pUartProtocolInfo->SendTxBuffer(nComFd);
 		}
-		else{
+		else
+		{
 			usleep(50); //通讯结束让出线程
 		}
 	}
@@ -113,27 +114,28 @@ static void *UartLoopThread(void *arg)
  * 配置Uart硬件的功能
  * 
  * @param fd 	 设置的串口设备ID
- * @param nSpeed 波特率
- * @param nBits  数据位
- * @param nEvent 奇偶校验位
- * @param nStop  停止位
+ * @param nBaud 波特率
+ * @param nDataBits  数据位
+ * @param cParity 奇偶校验位
+ * @param nStopBits  停止位
  *  
  * @return NULL
  */
-static int set_opt(int nFd, int nSpeed, int nBits, char nEvent, int nStop)
+static int set_opt(int nFd, int nBaud, int nDataBits, char cParity, int nStopBits)
 {
 	struct termios newtio;
 	struct termios oldtio;
 
-	if  (tcgetattr(nFd, &oldtio)  !=  0) { 
+	if(tcgetattr(nFd, &oldtio)  !=  0) 
+	{ 
 		USR_DEBUG("SetupSerial 1");
 		return -1;
 	}
-	bzero( &newtio, sizeof(newtio));
-	newtio.c_cflag |=  CLOCAL | CREAD;
+	bzero(&newtio, sizeof(newtio));
+	newtio.c_cflag |= (CLOCAL|CREAD);
 	newtio.c_cflag &= ~CSIZE;
 
-	switch( nBits )
+	switch(nDataBits)
 	{
 		case 7:
 			newtio.c_cflag |= CS7;
@@ -145,7 +147,7 @@ static int set_opt(int nFd, int nSpeed, int nBits, char nEvent, int nStop)
 			break;
 	}
 
-	switch(nEvent)
+	switch(cParity)
 	{
 		case 'O':
 		case 'o':
@@ -165,7 +167,7 @@ static int set_opt(int nFd, int nSpeed, int nBits, char nEvent, int nStop)
 			break;
 	}
 
-	switch( nSpeed )
+	switch( nBaud )
 	{
 		case 2400:
 			cfsetispeed(&newtio, B2400);
@@ -197,10 +199,12 @@ static int set_opt(int nFd, int nSpeed, int nBits, char nEvent, int nStop)
 			break;
 	}
 	
-	if(nStop == 1){
+	if(nStopBits == 1)
+	{
 		newtio.c_cflag &=  ~CSTOPB;
 	}
-	else if (nStop == 2){
+	else if (nStopBits == 2)
+	{
 		newtio.c_cflag |=  CSTOPB;
 	}
 	newtio.c_cc[VTIME]  = 0;

@@ -10,6 +10,7 @@ CProtocolInfo::CProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer)
     m_pTxBuffer = pTxBuffer;
 }
 
+//生成发送数据报文
 int CProtocolInfo::CreateSendBuffer(uint8_t nId, uint16_t nSize, uint8_t *pStart, bool bWriteThrough)
 {
     if(m_pTxBuffer != nullptr)

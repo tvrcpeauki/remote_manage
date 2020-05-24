@@ -114,7 +114,7 @@ int CProtocolInfo::CheckRxBuffer(int nFd)
                 {
                     m_RxBufSize = 0;
                     USR_DEBUG("Devoce ID Invalid\n");
-                    return RT_FAIL;
+                    return RT_INVALID;
                 }
 
                 /*获取接收数据的总长度*/
@@ -134,7 +134,7 @@ int CProtocolInfo::CheckRxBuffer(int nFd)
                     else{
                         m_RxBufSize = 0;
                         USR_DEBUG("CRC Check ERROR!. rx_data:%d, r:%d, c:%d\n", m_RxDataSize, CrcRecv, CrcCacl);
-                        return RT_FAIL;
+                        return RT_INVALID;
                     }
                 }  
             }           
@@ -143,12 +143,12 @@ int CProtocolInfo::CheckRxBuffer(int nFd)
         {
             usleep(1);
             m_RxTimeout++;
-            if(m_RxTimeout > 3000)
+            if(m_RxTimeout > 4000)
             {
                 m_RxBufSize = 0;
                 m_RxTimeout = 0;
-                USR_DEBUG("Recv m_RxTimeout\n");
-                return RT_FAIL;
+                USR_DEBUG("Recv RxTimeout\n");
+                return RT_TIMEOUT;
             }
         }
         
@@ -157,7 +157,7 @@ int CProtocolInfo::CheckRxBuffer(int nFd)
 }
 
 /**
- * 执行具体的指令, 并提交数据到上位机
+ * 执行具体的指令
  * 
  * @param fd 执行的设备ID号
  *  
@@ -199,7 +199,6 @@ int CProtocolInfo::ExecuteCommand(int nFd)
 
     /*发送数据，并清空接收数据*/
     m_RxBufSize = 0;
-    DeviceWrite(nFd, m_TxCachePtr, m_TxBufSize);
 	return RT_OK;
 }
 
@@ -240,6 +239,20 @@ int CProtocolInfo::CreateTxBuffer(uint8_t nAck, uint16_t nDataSize, uint8_t *pDa
 
     return nOutSize;
 }
+
+/**
+ * 提交数据到上位机
+ * 
+ * @param fd 执行的设备ID号
+ *  
+ * @return 执行执行的结果
+ */
+int CProtocolInfo::SendTxBuffer(int nFd)
+{
+    SystemLogArray(m_TxCachePtr, m_TxBufSize);
+	DeviceWrite(nFd, m_TxCachePtr, m_TxBufSize);
+}
+
 
 /**
  * CRC16计算实现

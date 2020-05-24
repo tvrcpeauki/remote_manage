@@ -14,6 +14,13 @@
 #define QUEUE_INFO_OK        0
 #define QUEUE_INFO_FULL     -1
 
+enum PROTOCOL_STATUS
+{
+    PROTOCOL_NULL = 0,
+    PROTOCOL_UART,
+    PROTOCOL_SOCKET
+};
+
 class SSendBuffer
 {
 public:
@@ -23,7 +30,6 @@ public:
         m_IsWriteThrough = bWriteThrough;
     }
     ~SSendBuffer(){
-
     }
 
     int m_nSize;
@@ -68,10 +74,16 @@ class CProtocolInfo
 {
 public:
     CProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer);
-        ~CProtocolInfo();
+    ~CProtocolInfo(){};
 
     int CreateSendBuffer(uint8_t nId, uint16_t nSize, uint8_t *pStart, bool bWriteThrough);
     uint16_t CaclcuCrcVal(uint8_t *pStart, int nSize);
+    uint16_t GetId(void){
+        return m_nId;
+    }
+    void SetId(uint16_t nCurId){
+        m_nId = nCurId;
+    }
 
     virtual int DeviceRead(uint8_t *pStart, uint16_t nMaxSize) = 0;
     virtual int DeviceWrite(uint8_t *pStart, uint16_t nSize) = 0;
@@ -80,6 +92,7 @@ private:
     uint8_t *m_pRxBuffer;
     uint8_t *m_pTxBuffer;  
     uint16_t m_nPacketId;
+    uint16_t m_nId;
 };
 
 #endif // PROTOCOL_H

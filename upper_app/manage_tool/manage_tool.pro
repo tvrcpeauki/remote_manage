@@ -1,4 +1,5 @@
 QT       += core gui
+QT       += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -21,11 +22,13 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     protocol.cpp \
+    socketclient.cpp \
     uartthread.cpp
 
 HEADERS += \
     mainwindow.h \
     protocol.h \
+    socketclient.h \
     typedef.h \
     uartthread.h
 
