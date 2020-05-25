@@ -1,4 +1,4 @@
-/*
+﻿/*
  * File      : SocketThread.cpp
  * Socket应用执行任务
  * COPYRIGHT (C) 2020, zc
@@ -130,7 +130,7 @@ static void *SocketLoopThread(void *arg)
     {
         SOCKET_DEBUG("socket init failed!\r\n");
     }
-    return nullptr;
+    return (void *)0;
 }
 
 /**
@@ -177,6 +177,6 @@ static void *SocketDataProcessThread(void *arg)
     SOCKET_DEBUG("socket process success\r\n");
     close(client_fd);
     pthread_detach(pthread_self());
-    return nullptr;
+    return  (void *)0;
 }
 
