@@ -13,6 +13,8 @@
 #define MAX_QUEUE            20
 #define QUEUE_INFO_OK        0
 #define QUEUE_INFO_FULL     -1
+#define QUEUE_INFO_INVALID  -2
+#define QUEUE_INFO_EMPTY    -3
 
 enum PROTOCOL_STATUS
 {
@@ -24,7 +26,7 @@ enum PROTOCOL_STATUS
 class SSendBuffer
 {
 public:
-    SSendBuffer(int nSize, uint8_t *pBuffer, bool bWriteThrough){
+    SSendBuffer(uint8_t *pBuffer = nullptr, int nSize = 0, bool bWriteThrough = false){
         m_nSize = nSize;
         m_pBuffer = pBuffer;
         m_IsWriteThrough = bWriteThrough;
@@ -37,31 +39,33 @@ public:
     uint8_t *m_pBuffer;
 };
 
-class CUserQueue
+class CProtocolQueue
 {
 public:
-    CUserQueue(){
+    CProtocolQueue(){
         m_nFreeList = MAX_QUEUE;
         m_nWriteIndex = 0;
         m_nReadIndex = 0;
         m_qLockMutex = new QMutex;
     }
-    ~CUserQueue(){
+    ~CProtocolQueue(){
     };
 
     bool isEmpty(){
         int m_nSize;
-        m_qLockMutex->unlock();
-        m_nSize = m_nFreeList;
         m_qLockMutex->lock();
+        m_nSize = m_nFreeList;
+        m_qLockMutex->unlock();
 
         if(m_nSize == MAX_QUEUE){
             return true;
         }
         return false;
     }
-    int QueuePost(SSendBuffer *Info);
-    SSendBuffer *QueuePend();
+
+    void clear();
+    int QueuePost(SSendBuffer *pSendBuffer);
+    int QueuePend(SSendBuffer *pSendbuffer);
 private:
     volatile int m_nFreeList;
     volatile int m_nWriteIndex;

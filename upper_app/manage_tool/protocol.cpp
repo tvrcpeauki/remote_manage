@@ -3,6 +3,7 @@
 #include <QTime>
 #include <QEventLoop>
 #include <QThread>
+#include <QDebug>
 
 CProtocolInfo::CProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer)
 {
@@ -68,7 +69,7 @@ uint16_t CProtocolInfo::CaclcuCrcVal(uint8_t *pStart, int nSize)
     return 0xffff;
 }
 
-int CUserQueue::QueuePost(SSendBuffer *info)
+int CProtocolQueue::QueuePost(SSendBuffer *pSendBuffer)
 {
     if(m_nFreeList == 0)
     {
@@ -76,7 +77,7 @@ int CUserQueue::QueuePost(SSendBuffer *info)
     }
 
     m_qLockMutex->lock();
-    qinfo_ptr[m_nWriteIndex] = info;
+    qinfo_ptr[m_nWriteIndex] = pSendBuffer;
     m_nWriteIndex++;
 
     //队列循环
@@ -89,14 +90,17 @@ int CUserQueue::QueuePost(SSendBuffer *info)
     return QUEUE_INFO_OK;
 }
 
-SSendBuffer *CUserQueue::QueuePend()
+int CProtocolQueue::QueuePend(SSendBuffer *pSendbuffer)
 {
-    SSendBuffer *info = nullptr;
-
     if(m_nFreeList < MAX_QUEUE)
     {
         m_qLockMutex->lock();
-        info = qinfo_ptr[m_nReadIndex];
+        pSendbuffer->m_pBuffer = qinfo_ptr[m_nReadIndex]->m_pBuffer;
+        pSendbuffer->m_nSize  = qinfo_ptr[m_nReadIndex]->m_nSize;
+        pSendbuffer->m_IsWriteThrough =  qinfo_ptr[m_nReadIndex]->m_IsWriteThrough;
+
+        delete qinfo_ptr[m_nReadIndex];
+        qinfo_ptr[m_nReadIndex] = nullptr;
         m_nReadIndex++;
 
         //队列循环
@@ -105,13 +109,21 @@ SSendBuffer *CUserQueue::QueuePend()
         }
         m_nFreeList++;
         m_qLockMutex->unlock();
+        qDebug()<<"queue receive";
+        return  QUEUE_INFO_OK;
     }
     else{
-        xtime time;
-        time.sec = 1;
-        _Thrd_sleep(&time);
+        QThread::msleep(100);
+        return QUEUE_INFO_EMPTY;
     }
-    return info;
 }
 
-
+//清空队列
+void CProtocolQueue::clear()
+{
+    m_qLockMutex->lock();
+    m_nFreeList = MAX_QUEUE;
+    m_nWriteIndex = 0;
+    m_nReadIndex = 0;
+    m_qLockMutex->unlock();
+}

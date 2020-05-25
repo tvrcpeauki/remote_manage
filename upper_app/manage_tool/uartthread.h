@@ -43,7 +43,7 @@ class CUartProtocolInfo:public CProtocolInfo
 {
 public:
     CUartProtocolInfo(uint8_t *pRxBuffer, uint8_t *pTxBuffer, CComInfo *pComInfo,
-                     CUserQueue *pUartQueue, CUartThread *pUartThread):
+                     CProtocolQueue *pUartQueue, CUartThread *pUartThread):
         CProtocolInfo(pRxBuffer, pTxBuffer){
         m_pComInfo = pComInfo;
         m_pUartQueue = pUartQueue;
@@ -56,7 +56,7 @@ public:
     }
 
     CComInfo *m_pComInfo;
-    CUserQueue *m_pUartQueue;
+    CProtocolQueue *m_pUartQueue;
     CUartThread *m_pThread;
 
     int CheckReceiveData(void);
@@ -65,5 +65,6 @@ public:
 };
 
 void UartThreadInit(void);
+int UartPostQueue(SSendBuffer *pSendBuffer);
 CUartProtocolInfo *GetUartProtocolInfo(void);
 #endif // CUartThread_H_H

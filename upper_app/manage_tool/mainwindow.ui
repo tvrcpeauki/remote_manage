@@ -58,7 +58,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>41</width>
+       <width>51</width>
        <height>20</height>
       </rect>
      </property>
@@ -81,7 +81,7 @@
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>41</width>
+       <width>51</width>
        <height>20</height>
       </rect>
      </property>
@@ -104,7 +104,7 @@
       <rect>
        <x>10</x>
        <y>70</y>
-       <width>41</width>
+       <width>51</width>
        <height>20</height>
       </rect>
      </property>
@@ -127,7 +127,7 @@
       <rect>
        <x>10</x>
        <y>100</y>
-       <width>41</width>
+       <width>51</width>
        <height>20</height>
       </rect>
      </property>
@@ -150,7 +150,7 @@
       <rect>
        <x>10</x>
        <y>130</y>
-       <width>41</width>
+       <width>51</width>
        <height>20</height>
       </rect>
      </property>
@@ -452,7 +452,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>71</width>
+       <width>81</width>
        <height>20</height>
       </rect>
      </property>
@@ -488,7 +488,7 @@
       <rect>
        <x>10</x>
        <y>70</y>
-       <width>61</width>
+       <width>71</width>
        <height>20</height>
       </rect>
      </property>
@@ -561,7 +561,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>192.168.1.1</string>
+      <string>192.168.93.1</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_port">
@@ -624,7 +624,7 @@
      <x>0</x>
      <y>0</y>
      <width>710</width>
-     <height>23</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

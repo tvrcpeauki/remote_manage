@@ -21,20 +21,23 @@ void CUartThread::CloseThread()
 //任务执行函数
 void CUartThread::run()
 {
-    SSendBuffer *pQueueInfo;
+    SSendBuffer SendBufferInfo;
     int nLen;
+    int nStatus;
     QString Sendbuf = "";
 
-    forever{
+    for(;;)
+    {
         if(m_nIsStop)
             return;
 
-        pQueueInfo  = pUartProtocolInfo->m_pUartQueue->QueuePend();
-        if(pQueueInfo != nullptr)
+        nStatus  = pUartProtocolInfo->m_pUartQueue->QueuePend(&SendBufferInfo);
+        if(nStatus == QUEUE_INFO_OK)
         {
             if(pUartProtocolInfo->m_pComInfo->com_status)
             {
-                nLen = pUartProtocolInfo->CreateSendBuffer(pUartProtocolInfo->GetId(), pQueueInfo->m_nSize, pQueueInfo->m_pBuffer, pQueueInfo->m_IsWriteThrough);
+                nLen = pUartProtocolInfo->CreateSendBuffer(pUartProtocolInfo->GetId(), SendBufferInfo.m_nSize,
+                                                           SendBufferInfo.m_pBuffer, SendBufferInfo.m_IsWriteThrough);
                 Sendbuf += byteArrayToHexString("Sendbuf:", tx_buffer, nLen, "\n");
                 pUartProtocolInfo->DeviceWrite(tx_buffer, nLen);
 
@@ -56,8 +59,7 @@ void CUartThread::run()
                 Sendbuf.clear();
             }
 
-            qDebug()<<"thread queue test OK\n";
-            delete pQueueInfo;
+            qDebug()<<"uart thread queue test OK";
         }
     }
 }
@@ -85,16 +87,22 @@ int CUartProtocolInfo::DeviceRead(uint8_t *pStart, uint16_t nMaxSize)
 void UartThreadInit(void)
 {
     CComInfo *pComInfo;
-    CUserQueue *pUartQueue;
+    CProtocolQueue *pUartQueue;
     CUartThread *pUartThread;
 
     pComInfo = new CComInfo();
     pUartThread = new CUartThread();
-    pUartQueue = new CUserQueue();
+    pUartQueue = new CProtocolQueue();
     pUartProtocolInfo = new CUartProtocolInfo(rx_buffer, tx_buffer, pComInfo, pUartQueue, pUartThread);
 }
 
 CUartProtocolInfo *GetUartProtocolInfo(void)
 {
     return pUartProtocolInfo;
+}
+
+//投递变量到消息队列
+int UartPostQueue(SSendBuffer *pSendBuffer)
+{
+     return pUartProtocolInfo->m_pUartQueue->QueuePost(pSendBuffer);
 }

@@ -19,6 +19,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    commandinfo.cpp \
     main.cpp \
     mainwindow.cpp \
     protocol.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
     uartthread.cpp
 
 HEADERS += \
+    commandinfo.h \
     mainwindow.h \
     protocol.h \
     socketclient.h \
@@ -40,4 +42,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES +=
+DISTFILES += \
+    icon.rc
+
+RC_FILE = icon.rc

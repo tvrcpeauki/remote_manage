@@ -4,58 +4,44 @@
 
 static uint8_t rx_buffer[BUFF_CACHE_SIZE];
 static uint8_t tx_buffer[BUFF_CACHE_SIZE];
-CTcpClientSocket *pCTcpClientSocket;
-static uint8_t beep_on_cmd[] = {
-    0x02, 0x00, 0x00, 0x00, 0x03, 0x05, 0x00, 0x02
-};
+static CTcpClientSocketInfo *pCTcpClientSocketInfo;
 
-CTcpClientSocket::CTcpClientSocket(QObject *parent, uint8_t *pRxBuffer, uint8_t *pTxBuffer):QObject(parent), CProtocolInfo(pRxBuffer, pTxBuffer)
+CTcpClientSocketInfo::CTcpClientSocketInfo(QObject *parent, uint8_t *pRxBuffer, uint8_t *pTxBuffer):QObject(parent), CProtocolInfo(pRxBuffer, pTxBuffer)
 {
     status = false;
-    port = 8000;
-    ipAddr = QString("192.168.1.251");
+
     serverIP = new QHostAddress();
-
-    if(!serverIP->setAddress(ipAddr)){
-        qDebug()<<"SetAddress error\n";
-    }
-
-    tcpSocket = new QTcpSocket(this);
-    connect(tcpSocket, SIGNAL(connected()), this, SLOT(slotConnected()));
-    connect(tcpSocket, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
-    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(dataReceived()));
+    m_pSocketQueue = new CProtocolQueue();
+    m_pThread = new CClientSocketThread();
 }
 
-CTcpClientSocket::~CTcpClientSocket()
+CTcpClientSocketInfo::~CTcpClientSocketInfo()
 {
     tcpSocket->deleteLater();
+    delete  m_pSocketQueue;
+    delete  m_pThread;
     delete  serverIP;
 }
 
-void CTcpClientSocket::slotConnected()
+void CTcpClientSocketInfo::slotConnected()
 {
-    int nLen;
     qDebug()<<"socket connect\n";
-    SSendBuffer *pSendBuffer = new SSendBuffer(sizeof(beep_on_cmd), beep_on_cmd, false);
-    nLen = CreateSendBuffer(pCTcpClientSocket->GetId(), pSendBuffer->m_nSize, pSendBuffer->m_pBuffer, pSendBuffer->m_IsWriteThrough);
-    delete pSendBuffer;
-    DeviceWrite(tx_buffer, nLen);
 }
 
-
-void CTcpClientSocket::slotDisconnected()
+void CTcpClientSocketInfo::slotDisconnected()
 {
-    qDebug()<<"退出网络连接\n";
+    qDebug()<<"socket disconnected\n";
 }
 
-int CTcpClientSocket::CheckReceiveData(void)
+int CTcpClientSocketInfo::CheckReceiveData(void)
 {
   return 0;
 }
 
 //接收数据
-void CTcpClientSocket::dataReceived()
+void CTcpClientSocketInfo::dataReceived()
 {
+    qDebug()<<"socket recv:"<<"\n";
     while(tcpSocket->bytesAvailable() > 0)
     {
         QByteArray datagram;
@@ -64,26 +50,80 @@ void CTcpClientSocket::dataReceived()
         DeviceRead((uint8_t *)datagram.data(), datagram.size());
 
         QString msg = datagram.data();
-        qDebug()<<"socket recv:"<<msg<<"\n";
     }
     tcpSocket->disconnectFromHost();
 }
 
-void CTcpClientSocket::SocketProcess(SSendBuffer *pSendBuffer)
+CClientSocketThread::CClientSocketThread(QObject *parent):QThread(parent)
 {
-    if(tcpSocket->isOpen() == false)
+   m_nIsStop = 0;
+}
+
+//关闭任务
+void CClientSocketThread::CloseThread()
+{
+    m_nIsStop = 1;
+}
+
+void CClientSocketThread::run()
+{
+    SSendBuffer SendBufferInfo;
+    QTcpSocket *pTcpSocket;
+    bool is_connect;
+    int nLen;
+    QString SendBuf;
+    int nStatus;
+
+    pCTcpClientSocketInfo->tcpSocket = new QTcpSocket();
+    connect(pCTcpClientSocketInfo->tcpSocket, SIGNAL(connected()), pCTcpClientSocketInfo, SLOT(slotConnected()));
+    connect(pCTcpClientSocketInfo->tcpSocket, SIGNAL(disconnected()), pCTcpClientSocketInfo, SLOT(slotDisconnected()));
+    connect(pCTcpClientSocketInfo->tcpSocket, SIGNAL(readyRead()), pCTcpClientSocketInfo, SLOT(dataReceived()));
+
+    for(;;)
     {
-         tcpSocket->disconnectFromHost();
+        if(m_nIsStop)
+            return;
+
+        nStatus  = pCTcpClientSocketInfo->m_pSocketQueue->QueuePend(&SendBufferInfo);
+        if(nStatus == QUEUE_INFO_OK)
+        {
+            pTcpSocket = pCTcpClientSocketInfo->tcpSocket;
+            pTcpSocket->abort();
+            pTcpSocket->connectToHost(*pCTcpClientSocketInfo->serverIP, pCTcpClientSocketInfo->m_nPort);
+            nLen = pCTcpClientSocketInfo->CreateSendBuffer(pCTcpClientSocketInfo->GetId(), SendBufferInfo.m_nSize,
+                                                           SendBufferInfo.m_pBuffer, SendBufferInfo.m_IsWriteThrough);
+            is_connect = pTcpSocket->waitForConnected();
+            if(is_connect)
+            {
+                pCTcpClientSocketInfo->DeviceWrite(tx_buffer, nLen);
+
+                //通知主线程更新窗口
+                SendBuf = byteArrayToHexString("Sendbuf:", tx_buffer, nLen, "\n");
+                emit send_edit_test(SendBuf);
+                pTcpSocket->waitForBytesWritten();
+            }
+            qDebug()<<"thread queue test OK\n";
+        }
     }
-    tcpSocket->connectToHost(*serverIP, port);
 }
 
-void CTcpClientSocketInit(void)
+//socket处理的应用
+int TcpClientPostQueue(SSendBuffer *pSendBuffer)
 {
-    pCTcpClientSocket = new CTcpClientSocket((QObject *)0, rx_buffer, tx_buffer);
+    if(pCTcpClientSocketInfo->m_pSocketQueue != nullptr)
+    {
+        return pCTcpClientSocketInfo->m_pSocketQueue->QueuePost(pSendBuffer);
+    }
+    return QUEUE_INFO_INVALID;
 }
 
-CTcpClientSocket *GetTcpClientSocket()
+
+void TcpClientSocketInit(void)
 {
-    return pCTcpClientSocket;
+    pCTcpClientSocketInfo = new CTcpClientSocketInfo((QObject *)0, rx_buffer, tx_buffer);
+}
+
+CTcpClientSocketInfo *GetTcpClientSocket()
+{
+    return pCTcpClientSocketInfo;
 }
