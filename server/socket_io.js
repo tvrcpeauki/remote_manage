@@ -2,7 +2,7 @@
 const net = require('net');
 
 // 3 链接
-var client = net.connect({port:8000, host:"192.168.1.251"}, function(){
+var client = net.connect({port:8000, host:"192.168.93.1"}, function(){
     this.setEncoding('utf8');
     this.setTimeout(500);
     this.on('data',(data)=>{
