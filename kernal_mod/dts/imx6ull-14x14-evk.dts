@@ -98,6 +98,7 @@
 		};
 	};
 
+	/*beep add by zc*/
 	beep {
 		compatible = "gpio-beep";
 		pinctrl-names = "default";
@@ -201,20 +202,6 @@
 			remote-endpoint = <&ov5640_ep>;
 		};
 	};
-};
-
-&ecspi3 {
-        fsl,spi-num-chipselects = <1>;
-        cs-gpio = <&gpio1 20 GPIO_ACTIVE_LOW>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_ecspi3>;
-        status = "okay";
-
-	spidev: icm20608@0 {
-	compatible = "alientek,icm20608";
-        spi-max-frequency = <8000000>;
-        reg = <0>;
-    };
 };
 
 &fec1 {
@@ -415,14 +402,22 @@
 			>;
 		};
 
-                pinctrl_ecspi3: ecspi3grp {
-                        fsl,pins = <
-                                MX6UL_PAD_UART2_RTS_B__ECSPI3_MISO        0x100b1  /* MISO*/
-                                MX6UL_PAD_UART2_CTS_B__ECSPI3_MOSI        0x100b1  /* MOSI*/
-                                MX6UL_PAD_UART2_RX_DATA__ECSPI3_SCLK      0x100b1  /* CLK*/
-                                MX6UL_PAD_UART2_TX_DATA__GPIO1_IO20       0x100b0  /* CS*/
-                        >;
-                };
+		/*beep pinctrl used add by zc*/
+		pinctrl_beep: beep {
+			fsl,pins = <
+				MX6ULL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x10B0
+			>;
+		};
+		
+		/*spi pinctrl used add by zc*/
+		pinctrl_ecspi3: ecspi3grp {
+				fsl,pins = <
+					MX6UL_PAD_UART2_TX_DATA__GPIO1_IO20		0x10b0	/* CS */
+					MX6UL_PAD_UART2_RX_DATA__ECSPI3_SCLK	0x10b1	/* SCLK */
+					MX6UL_PAD_UART2_RTS_B__ECSPI3_MISO		0x10b1	/* MISO */
+					MX6UL_PAD_UART2_CTS_B__ECSPI3_MOSI		0x10b1	/* MOSI */
+				>;
+		};
 
 		pinctrl_gpio_leds: gpio-leds {
 			fsl,pins = <
@@ -722,21 +717,15 @@
 			>;
 		};
 
-                pinctrl_sai2_hp_det_b: sai2_hp_det_grp {
-                        fsl,pins = <
-                                MX6ULL_PAD_SNVS_TAMPER4__GPIO5_IO04   0x17059
-                        >;
-                };
+		pinctrl_sai2_hp_det_b: sai2_hp_det_grp {
+				fsl,pins = <
+						MX6ULL_PAD_SNVS_TAMPER4__GPIO5_IO04   0x17059
+				>;
+		};
 
 		ts_reset_pin: ts_reset_pin_mux {
 			fsl,pins = <
 				MX6ULL_PAD_SNVS_TAMPER9__GPIO5_IO09	0x18
-			>;
-		};
-
-		pinctrl_beep: beep {
-			fsl,pins = <
-				MX6ULL_PAD_SNVS_TAMPER1__GPIO5_IO01	0x17059
 			>;
 		};
     };
@@ -892,4 +881,19 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,wdog_b;
+};
+
+/*spi3-icm add by zc*/
+&ecspi3 {
+        fsl,spi-num-chipselects = <1>;
+        cs-gpio = <&gpio1 20 GPIO_ACTIVE_LOW>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_ecspi3>;
+        status = "okay";
+
+	spidev: icm20608@0 {
+		compatible = "alientek,icm20608";
+        spi-max-frequency = <8000000>;
+        reg = <0>;
+    };
 };
