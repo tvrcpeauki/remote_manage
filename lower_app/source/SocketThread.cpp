@@ -92,38 +92,45 @@ static void *SocketLoopThread(void *arg)
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd != -1)
     {
-        result = bind(server_fd, (struct sockaddr *)&serverip, sizeof(serverip));
-        if(result != -1)
+        
+        do 
         {
-            USR_DEBUG("Socket Binding OK, Now Listen...!\n");
-            listen(server_fd, 32);
-            while(1)
+            result = bind(server_fd, (struct sockaddr *)&serverip, sizeof(serverip));
+            if(result == -1)
             {
-                uint32_t client_size;
-                int client_fd;
+                SOCKET_DEBUG("socket bind failed!\r\n");
+                sleep(1);
+            }
+            else
+            {
+                break;
+            }
+        } while (1); //网络等待socket绑定完成后执行后续
+        
+        USR_DEBUG("Socket Binding OK, Now Listen...!\n");
+        listen(server_fd, 32);
+        while(1)
+        {
+            uint32_t client_size;
+            int client_fd;
 
-                client_size = sizeof(clientip);
-                client_fd = accept(server_fd, (struct sockaddr *)&clientip, &client_size);
-                if(client_fd < 0)
+            client_size = sizeof(clientip);
+            client_fd = accept(server_fd, (struct sockaddr *)&clientip, &client_size);
+            if(client_fd < 0)
+            {
+                SOCKET_DEBUG("socket accept failed!\r\n");
+                continue;
+            } 
+            else
+            {
+                int nErr;
+                pthread_t tid1;
+                nErr = pthread_create(&tid1, NULL, SocketDataProcessThread, &client_fd);
+                if(nErr != 0)
                 {
-                    SOCKET_DEBUG("socket accept failed!\r\n");
-                    continue;
-                } 
-                else
-                {
-                    int nErr;
-	                pthread_t tid1;
-                    nErr = pthread_create(&tid1, NULL, SocketDataProcessThread, &client_fd);
-                    if(nErr != 0)
-                    {
-                        SOCKET_DEBUG("socket date process failed!\r\n");
-                    }
+                    SOCKET_DEBUG("socket date process failed!\r\n");
                 }
             }
-        }
-        else
-        {
-            SOCKET_DEBUG("socket bind failed!\r\n");
         }
     }
     else
