@@ -62,7 +62,7 @@ struct icm20608_info{
 	signed int accel_y_adc;		/* 加速度计Y轴原始值	*/
 	signed int accel_z_adc;		/* 加速度计Z轴原始值 	*/
 	signed int temp_adc;		/* 温度原始值 			*/
-}
+};
 
 static struct icm20608_info icm_info;
 
@@ -180,18 +180,18 @@ static void icm20608_write_onereg(struct icm20608_dev *dev, u8 reg, u8 value)
  * @param - dev	: ICM20608设备
  * @return 		: 无。
  */
-void icm20608_readdata(struct icm20608_dev *dev)
+void icm20608_readdata(struct icm20608_info *p_info)
 {
 	unsigned char data[14];
-	icm20608_read_regs(dev, ICM20_ACCEL_XOUT_H, data, 14);
+	icm20608_read_regs(&p_info->dev, ICM20_ACCEL_XOUT_H, data, 14);
 
-	dev->accel_x_adc = (signed short)((data[0] << 8) | data[1]); 
-	dev->accel_y_adc = (signed short)((data[2] << 8) | data[3]); 
-	dev->accel_z_adc = (signed short)((data[4] << 8) | data[5]); 
-	dev->temp_adc    = (signed short)((data[6] << 8) | data[7]); 
-	dev->gyro_x_adc  = (signed short)((data[8] << 8) | data[9]); 
-	dev->gyro_y_adc  = (signed short)((data[10] << 8) | data[11]);
-	dev->gyro_z_adc  = (signed short)((data[12] << 8) | data[13]);
+	p_info->accel_x_adc = (signed short)((data[0] << 8) | data[1]); 
+	p_info->accel_y_adc = (signed short)((data[2] << 8) | data[3]); 
+	p_info->accel_z_adc = (signed short)((data[4] << 8) | data[5]); 
+	p_info->temp_adc    = (signed short)((data[6] << 8) | data[7]); 
+	p_info->gyro_x_adc  = (signed short)((data[8] << 8) | data[9]); 
+	p_info->gyro_y_adc  = (signed short)((data[10] << 8) | data[11]);
+	p_info->gyro_z_adc  = (signed short)((data[12] << 8) | data[13]);
 }
 
 /*
@@ -219,16 +219,16 @@ static ssize_t icm20608_read(struct file *filp, char __user *buf, size_t cnt, lo
 {
 	signed int data[7];
 	long err = 0;
-	struct icm20608_dev *dev = (struct icm20608_dev *)filp->private_data;
+	struct icm20608_info *p_info = (struct icm20608_info *)filp->private_data;
 
-	icm20608_readdata(dev);
-	data[0] = dev->gyro_x_adc;
-	data[1] = dev->gyro_y_adc;
-	data[2] = dev->gyro_z_adc;
-	data[3] = dev->accel_x_adc;
-	data[4] = dev->accel_y_adc;
-	data[5] = dev->accel_z_adc;
-	data[6] = dev->temp_adc;
+	icm20608_readdata(p_info);
+	data[0] = p_info->gyro_x_adc;
+	data[1] = p_info->gyro_y_adc;
+	data[2] = p_info->gyro_z_adc;
+	data[3] = p_info->accel_x_adc;
+	data[4] = p_info->accel_y_adc;
+	data[5] = p_info->accel_z_adc;
+	data[6] = p_info->temp_adc;
 	err = copy_to_user(buf, data, sizeof(data));
 	return 0;
 }
@@ -277,8 +277,7 @@ static int icm_hardware_init(struct spi_device *spi)
 	}
 
 	/* 3、设置GPIO1_IO20为输出，并且输出高电平 */
-	ret = gpio_direction_output(icm_info.dev.cs_gpio, 1);
-	if(ret < 0) {
+	if(gpio_direction_output(icm_info.dev.cs_gpio, 1) < 0) {
 		printk("can't set gpio!\r\n");
 	}
 
@@ -287,9 +286,6 @@ static int icm_hardware_init(struct spi_device *spi)
 	spi_setup(spi);
 	icm_info.dev.private_data = spi; /* 设置私有数据 */
 
-	/* 初始化ICM20608内部寄存器 */
-
-	
 	/*设置spi内部寄存器*/
 	icm20608_write_onereg(&icm_info.dev, ICM20_PWR_MGMT_1, 0x80);
 	mdelay(50);
@@ -306,7 +302,9 @@ static int icm_hardware_init(struct spi_device *spi)
 	icm20608_write_onereg(&icm_info.dev, ICM20_ACCEL_CONFIG2, 0x04); /* 加速度计低通滤波BW=21.2Hz 			*/
 	icm20608_write_onereg(&icm_info.dev, ICM20_PWR_MGMT_2, 0x00); 	/* 打开加速度计和陀螺仪所有轴 				*/
 	icm20608_write_onereg(&icm_info.dev, ICM20_LP_MODE_CFG, 0x00); 	/* 关闭低功耗 						*/
-	icm20608_write_onereg(&icm_info.dev, ICM20_FIFO_EN, 0x00);		/* 关闭FIFO	
+	icm20608_write_onereg(&icm_info.dev, ICM20_FIFO_EN, 0x00);		/* 关闭FIFO	*/
+
+	return 0;
 }
 
 /**
@@ -354,6 +352,13 @@ static int icm20608_probe(struct spi_device *spi)
 	return 0;
 }
 
+/**
+ * spi驱动移除函数
+ * 
+ * @param spi spi设备   
+ *
+ * @return 设备移除处理结果
+ */
 static int icm20608_remove(struct spi_device *spi)
 {
 	/* 删除设备 */
@@ -365,8 +370,6 @@ static int icm20608_remove(struct spi_device *spi)
 	class_destroy(icm_info.dev.class);
 	return 0;
 }
-
-
 
 /* 传统匹配方式ID列表 */
 static const struct spi_device_id icm20608_id[] = {

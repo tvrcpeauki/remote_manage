@@ -57,7 +57,7 @@ static void led_gpio_init(void);
 static void led_gpio_release(void);
 static void led_switch(u8 status);
 
-MODULE_AUTHOR("zc");				//模块作者
+MODULE_AUTHOR("zc");				        //模块作者
 MODULE_LICENSE("GPL v2");                     //模块许可协议
 MODULE_DESCRIPTION("led driver");             //模块许描述
 MODULE_ALIAS("led_driver");                   //模块别名
