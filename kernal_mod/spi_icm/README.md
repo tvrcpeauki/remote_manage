@@ -27,4 +27,9 @@ pinctrl_ecspi3: ecspi3grp {
     };
 };
 重新编译设备树，即完成了设备树的修改。
+执行make dtbs，获得修改后的设备树
+
+2. 在kernal_mod/spi_icm/路径下执行make指令，获取模块kernal_spi_icm.ko(firmware下有已经编译完成的固件)
+
+3. 将模块传输到嵌入式Linux平台，执行insmod kernal_spi_icm.ko指令，此时在/dev/路径下就添加了icm20608设备，后续即可实现传感器应用
 
