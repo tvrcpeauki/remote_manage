@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		ret = read(fd, databuf, sizeof(databuf));
-		if(ret == 0) { 			/* 数据读取成功 */
+		if(ret > 0) { 			/* 数据读取成功 */
 			gyro_x_adc = databuf[0];
 			gyro_y_adc = databuf[1];
 			gyro_z_adc = databuf[2];

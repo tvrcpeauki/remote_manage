@@ -66,13 +66,15 @@ struct icm20608_info{
 
 static struct icm20608_info icm_info;
 
-/*
- * @description	: 从icm20608读取多个寄存器数据
- * @param - dev:  icm20608设备
- * @param - reg:  要读取的寄存器首地址
- * @param - val:  读取到的数据
- * @param - len:  要读取的数据长度
- * @return 		: 操作结果
+/**
+ * 连续读取icm20608设备寄存器的值
+ * 
+ * @param dev ICM20608设备信息
+ * @param reg 待读取设备寄存器的首地址
+ * @param buf 读取数据缓冲区首地址
+ * @param len 待读取数据长度
+ *
+ * @return 读取寄存的操作结果
  */
 static int icm20608_read_regs(struct icm20608_dev *dev, u8 reg, void *buf, int len)
 {
@@ -107,13 +109,15 @@ static int icm20608_read_regs(struct icm20608_dev *dev, u8 reg, void *buf, int l
 	return ret;
 }
 
-/*
- * @description	: 向icm20608多个寄存器写入数据
- * @param - dev:  icm20608设备
- * @param - reg:  要写入的寄存器首地址
- * @param - val:  要写入的数据缓冲区
- * @param - len:  要写入的数据长度
- * @return 	  :   操作结果
+/**
+ * 连续向icm20608设备寄存器写入数据
+ * 
+ * @param dev ICM20608设备信息
+ * @param reg 待写入设备寄存器的首地址
+ * @param buf 待写入数据缓冲区首地址
+ * @param len 待写入数据长度
+ *
+ * @return 写入寄存的操作结果
  */
 static s32 icm20608_write_regs(struct icm20608_dev *dev, u8 reg, u8 *buf, u8 len)
 {
@@ -147,11 +151,13 @@ static s32 icm20608_write_regs(struct icm20608_dev *dev, u8 reg, u8 *buf, u8 len
 	return ret;
 }
 
-/*
- * @description	: 读取icm20608指定寄存器值，读取一个寄存器
- * @param - dev:  icm20608设备
- * @param - reg:  要读取的寄存器
- * @return 	  :   读取到的寄存器值
+/**
+ * 读取icm20608指定寄存器地址的值
+ * 
+ * @param dev ICM20608设备信息
+ * @param reg 待读取设备寄存器的地址
+ *
+ * @return 读取到的寄存值
  */
 static unsigned char icm20608_read_onereg(struct icm20608_dev *dev, u8 reg)
 {
@@ -160,25 +166,28 @@ static unsigned char icm20608_read_onereg(struct icm20608_dev *dev, u8 reg)
 	return data;
 }
 
-/*
- * @description	: 向icm20608指定寄存器写入指定的值，写一个寄存器
- * @param - dev:  icm20608设备
- * @param - reg:  要写的寄存器
- * @param - data: 要写入的值
- * @return   :    无
- */	
-
+/**
+ * 向icm20608指定寄存器地址写入值
+ * 
+ * @param dev ICM20608设备信息
+ * @param reg 写入设备寄存器的地址
+ * @param value 写入设备寄存的值
+ *
+ * @return NULL
+ */
 static void icm20608_write_onereg(struct icm20608_dev *dev, u8 reg, u8 value)
 {
 	u8 buf = value;
 	icm20608_write_regs(dev, reg, &buf, 1);
 }
 
-/*
- * @description	: 读取ICM20608的数据，读取原始数据，包括三轴陀螺仪、
- * 				: 三轴加速度计和内部温度。
- * @param - dev	: ICM20608设备
- * @return 		: 无。
+/**
+ * 读取ICM20608的数据，读取原始数据，包括三轴陀螺仪、
+ * 三轴加速度计和内部温度。
+ * 
+ * @param p_info ICM20608设备信息
+ *
+ * @return NULL
  */
 void icm20608_readdata(struct icm20608_info *p_info)
 {
@@ -194,31 +203,34 @@ void icm20608_readdata(struct icm20608_info *p_info)
 	p_info->gyro_z_adc  = (signed short)((data[12] << 8) | data[13]);
 }
 
-/*
- * @description		: 打开设备
- * @param - inode 	: 传递给驱动的inode
- * @param - filp 	: 设备文件，file结构体有个叫做pr似有ate_data的成员变量
- * 					  一般在open的时候将private_data似有向设备结构体。
- * @return 			: 0 成功;其他 失败
- */
+/**
+* 打开设备
+* 
+* @param inode 驱动内的节点信息
+* @param filp  要打开的设备文件(文件描述符) 
+*
+* @return 设备打开处理结果，0表示正常
+*/
 static int icm20608_open(struct inode *inode, struct file *filp)
 {
 	filp->private_data = &icm_info; /* 设置私有数据 */
 	return 0;
 }
 
-/*
- * @description		: 从设备读取数据 
- * @param - filp 	: 要打开的设备文件(文件描述符)
- * @param - buf 	: 返回给用户空间的数据缓冲区
- * @param - cnt 	: 要读取的数据长度
- * @param - offt 	: 相对于文件首地址的偏移
- * @return 			: 读取的字节数，如果为负值，表示读取失败
+/**
+ * 从设备中读取数据
+ * 
+ * @param filp 要打开的设备文件(文件描述符)
+ * @param buf  返回给用户空间的数据缓冲区
+ * @param cnt  要读取的数据长度
+ * @param off  相对于文件首地址的偏移 
+ *
+ * @return 读取到数据的长度，负值表示读取失败
  */
 static ssize_t icm20608_read(struct file *filp, char __user *buf, size_t cnt, loff_t *off)
 {
 	signed int data[7];
-	long err = 0;
+	int err;
 	struct icm20608_info *p_info = (struct icm20608_info *)filp->private_data;
 
 	icm20608_readdata(p_info);
@@ -230,13 +242,19 @@ static ssize_t icm20608_read(struct file *filp, char __user *buf, size_t cnt, lo
 	data[5] = p_info->accel_z_adc;
 	data[6] = p_info->temp_adc;
 	err = copy_to_user(buf, data, sizeof(data));
-	return 0;
+
+	if(err != 0) 
+		return err;
+	return cnt;
 }
 
-/*
- * @description		: 关闭/释放设备
- * @param - filp 	: 要关闭的设备文件(文件描述符)
- * @return 			: 0 成功;其他 失败
+/**
+ * icm设备关闭时执行函数
+ * 
+ * @param inode 驱动内的节点信息
+ * @param filp 要打开的设备文件(文件描述符)
+ *
+ * @return 设备关闭处理结果，0表示正常
  */
 static int icm20608_release(struct inode *inode, struct file *filp)
 {
@@ -251,13 +269,13 @@ static const struct file_operations icm20608_ops = {
 	.release = icm20608_release,
 };
 
- /* 
-  * @description     : spi驱动的probe函数，当驱动与
-  *                    设备匹配以后此函数就会执行
-  * @param - client  : spi设备
-  * @param - id      : spi设备ID
-  * 
-  */	
+/**
+ * icm设备硬件初始化相关函数
+ * 
+ * @param spi spi硬件结构体指针
+ *
+ * @return 设备硬件初始化结果
+ */
 static int icm_hardware_init(struct spi_device *spi)
 {
 	unsigned char value = 0;
@@ -310,9 +328,9 @@ static int icm_hardware_init(struct spi_device *spi)
 /**
  * spi驱动的probe函数，当驱动与设备匹配以后此函数就会执行
  * 
- * @param spi spi设备   
+ * @param spi spi硬件结构体指针   
  *
- * @return 设备初始化的结果状态
+ * @return 设备probe处理结果
  */
 static int icm20608_probe(struct spi_device *spi)
 {
@@ -396,11 +414,11 @@ static struct spi_driver icm20608_driver = {
 };
 
 /**
- * 驱动加载函数
+ * 驱动加载时执行的初始化函数
  * 
  * @param NULL    
  *
- * @return 
+ * @return 驱动加载执行结果
  */
 static int __init icm20608_module_init(void)
 {
@@ -408,18 +426,18 @@ static int __init icm20608_module_init(void)
 }
 
 /**
- * 驱动释放函数
+ * 驱动释放时执行的退出函数
  * 
  * @param NULL    
  *
- * @return 
+ * @return 驱动退出执行结果
  */
 static void __exit icm20608_module_exit(void)
 {
     return spi_unregister_driver(&icm20608_driver);
 }
 
-module_init(icm20608_module_init);                       
+module_init(icm20608_module_init);                      
 module_exit(icm20608_module_exit);
 MODULE_AUTHOR("zc");				                //模块作者
 MODULE_LICENSE("GPL v2");                           //模块许可协议

@@ -63,12 +63,12 @@ MODULE_DESCRIPTION("led driver");             //模块许描述
 MODULE_ALIAS("led_driver");                   //模块别名
 
 /**
- * 获取LED资源
+ * 打开LED，获取LED资源
  * 
- * @param inode    
- * @param filp
+ * @param inode  驱动内的节点信息
+ * @param filp   要处理的设备文件(文件描述符)
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 设备打开处理结果，0表示正常
  */
 int led_open(struct inode *inode, struct file *filp)
 {
@@ -79,10 +79,10 @@ int led_open(struct inode *inode, struct file *filp)
 /**
  * 释放LED设备资源
  * 
- * @param inode
- * @param filp
+ * @param inode  驱动内的节点信息
+ * @param filp   要处理的设备文件(文件描述符)
  * 
- * @return the error code, 0 on initialization successfully.
+ * @return 设备关闭处理结果，0表示正常
  */
 int led_release(struct inode *inode, struct file *filp)
 {
@@ -92,12 +92,12 @@ int led_release(struct inode *inode, struct file *filp)
 /**
  * 从LED设备读取数据
  * 
- * @param filp
- * @param buf
- * @param count
- * @param f_ops
+ * @param filp  要打开的设备文件(文件描述符)
+ * @param buf   待读取数据缓冲的首地址
+ * @param count 待读取数据的长度
+ * @param f_ops 待读取数据的偏移值
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 正常返回读取的长度，负值表示读取失败
  */
 ssize_t led_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
 {
@@ -107,12 +107,12 @@ ssize_t led_read(struct file *filp, char __user *buf, size_t count, loff_t *f_po
 /**
  * 向LED设备写入数据
  * 
- * @param filp
- * @param buf
- * @param count
- * @param f_ops
+ * @param filp  要打开的设备文件(文件描述符)
+ * @param buf   待写入数据缓冲的首地址
+ * @param count 待写入数据的长度
+ * @param f_ops 待写入数据的偏移值
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 正常返回写入的长度，负值表示写入失败
  */
 ssize_t led_write(struct file *filp, const char __user *buf, size_t count,  loff_t *f_pos)
 {
@@ -131,13 +131,13 @@ ssize_t led_write(struct file *filp, const char __user *buf, size_t count,  loff
 }
 
 /**
- * light从设备读取状态
+ * 执行控制指令的接口
  * 
- * @param filp
- * @param cmd
- * @param arg
+ * @param filp 要打开的设备文件(文件描述符)
+ * @param cmd  操作执行的指令
+ * @param arg  操作处理的值
  *  
- * @return the error code, 0 on initialization successfully.
+ * @return 返回控制指令的执行结果，0表示执行正常
  */
 long led_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
@@ -167,11 +167,11 @@ static struct file_operations led_fops = {
 };
 
 /**
- * 驱动入口函数
+ * 驱动加载时执行的初始化函数
  * 
  * @param NULL
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 驱动加载处理结果
  */
 static int __init led_module_init(void)
 {
@@ -246,11 +246,11 @@ static int __init led_module_init(void)
 module_init(led_module_init);
 
 /**
- * 驱动释放函数
+ * 驱动释放时执行的退出函数
  * 
- * @param NULL
+ * @param NULL    
  *
- * @return the error code, 0 on release successfully.
+ * @return 驱动退出执行结果
  */
 static void __exit led_module_exit(void)
 {

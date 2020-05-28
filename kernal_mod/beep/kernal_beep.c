@@ -45,7 +45,7 @@ struct beep_info
 
 struct beep_info beep_driver_info;
 
-#define TREE_NODE_NAME                  "/beep"
+#define TREE_NODE_NAME                  "/beep"    /*设备树名称*/
 
 #define DEFAULT_MAJOR                   0          /*默认主设备号*/
 #define DEFAULT_MINOR                   0          /*默认从设备号*/
@@ -55,23 +55,18 @@ struct beep_info beep_driver_info;
 #define BEEP_OFF                         0
 #define BEEP_ON                          1
 
-/*内部接口*/
+/*内部硬件操作的接口*/
 static int beep_gpio_init(void);
 static void beep_gpio_release(void);
 static void beep_switch(u8 status);
 
-MODULE_AUTHOR("zc");				    //模块作者
-MODULE_LICENSE("GPL v2");               //模块许可协议
-MODULE_DESCRIPTION("beep driver");      //模块许描述
-MODULE_ALIAS("beep_driver");            //模块别名
-
 /**
- * 获取BEEP资源
+ * 打开BEEP，获取资源
  * 
- * @param inode    
- * @param filp
+ * @param inode  驱动内的节点信息
+ * @param filp   要处理的设备文件(文件描述符)
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 设备打开处理结果，0表示正常
  */
 int beep_open(struct inode *inode, struct file *filp)
 {
@@ -82,10 +77,10 @@ int beep_open(struct inode *inode, struct file *filp)
 /**
  * 释放BEEP设备资源
  * 
- * @param inode
- * @param filp
+ * @param inode  驱动内的节点信息
+ * @param filp   要处理的设备文件(文件描述符)
  * 
- * @return the error code, 0 on initialization successfully.
+ * @return 设备关闭处理结果，0表示正常
  */
 int beep_release(struct inode *inode, struct file *filp)
 {
@@ -95,12 +90,12 @@ int beep_release(struct inode *inode, struct file *filp)
 /**
  * 从BEEP设备读取数据
  * 
- * @param filp
- * @param buf
- * @param count
- * @param f_ops
+ * @param filp  要打开的设备文件(文件描述符)
+ * @param buf   待读取数据缓冲的首地址
+ * @param count 待读取数据的长度
+ * @param f_ops 待读取数据的偏移值
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 正常返回读取的长度，负值表示读取失败
  */
 ssize_t beep_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
 {
@@ -110,12 +105,12 @@ ssize_t beep_read(struct file *filp, char __user *buf, size_t count, loff_t *f_p
 /**
  * 向BEEP设备写入数据
  * 
- * @param filp
- * @param buf
- * @param count
- * @param f_ops
+ * @param filp  要打开的设备文件(文件描述符)
+ * @param buf   待写入数据缓冲的首地址
+ * @param count 待写入数据的长度
+ * @param f_ops 待写入数据的偏移值
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 正常返回写入的长度，负值表示写入失败
  */
 ssize_t beep_write(struct file *filp, const char __user *buf, size_t count,  loff_t *f_pos)
 {
@@ -134,13 +129,13 @@ ssize_t beep_write(struct file *filp, const char __user *buf, size_t count,  lof
 }
 
 /**
- * 从设备BEEP读取状态
+ * 执行控制指令的接口
  * 
- * @param filp
- * @param cmd
- * @param arg
+ * @param filp 要打开的设备文件(文件描述符)
+ * @param cmd  操作执行的指令
+ * @param arg  操作处理的值
  *  
- * @return the error code, 0 on initialization successfully.
+ * @return 返回控制指令的执行结果，0表示执行正常
  */
 long beep_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
@@ -170,11 +165,11 @@ static struct file_operations beep_fops = {
 };
 
 /**
- * 驱动入口函数
+ * 驱动加载时执行的初始化函数
  * 
  * @param NULL
  *
- * @return the error code, 0 on initialization successfully.
+ * @return 驱动加载处理结果
  */
 static int __init beep_module_init(void)
 {
@@ -246,16 +241,14 @@ static int __init beep_module_init(void)
 	}
 
     return 0;
-
 }
-module_init(beep_module_init);
 
 /**
- * 驱动释放函数
+ * 驱动释放时执行的退出函数
  * 
- * @param NULL
+ * @param NULL    
  *
- * @return the error code, 0 on release successfully.
+ * @return 驱动退出执行结果
  */
 static void __exit beep_module_exit(void)
 {
@@ -269,14 +262,13 @@ static void __exit beep_module_exit(void)
     /*硬件资源释放*/
     beep_gpio_release();
 }
-module_exit(beep_module_exit);
 
 /**
  * BEEP硬件初始化，引脚信息从设备树获取
  * 
  * @param NULL
  *
- * @return NULL
+ * @return 硬件初始化的处理结果，0表示正常
  */
 static int beep_gpio_init(void)
 {
@@ -308,13 +300,14 @@ static int beep_gpio_init(void)
 }
 
 /**
- * 释放硬件资源
+ * beep资源释放时执行函数
  * 
  * @param NULL
  *
  * @return NULL
  */
-static void beep_gpio_release(void){
+static void beep_gpio_release(void)
+{
 }
 
 /**
@@ -345,3 +338,10 @@ static void beep_switch(u8 status)
             break;
     }
 }
+
+module_init(beep_module_init);
+module_exit(beep_module_exit);
+MODULE_AUTHOR("zc");				    //模块作者
+MODULE_LICENSE("GPL v2");               //模块许可协议
+MODULE_DESCRIPTION("beep driver");      //模块许描述
+MODULE_ALIAS("beep_driver");            //模块别名
