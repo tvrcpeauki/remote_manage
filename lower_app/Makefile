@@ -1,34 +1,31 @@
-Object=main.o ApplicationThread.o UartThread.o UsrProtocol.o SocketThread.o Led.o Beep.o
-CPPFLAG=
-CLIBFLAG=-lpthread
-CC=arm-linux-gnueabihf-g++
-TARGET=system_app
+#编译工具和编译选项
+CC = arm-linux-gnueabihf-g++
+CFLAGS  := -O3 -std=c++11 -lpthread
 
-$(TARGET):$(Object)
-	$(CC) -o $(TARGET) $(Object) $(CLIBFLAG)
-	chmod 777 $(TARGET)
+#头文件路径
+LOWERAPP_INC_ROOT = lib/jsoncpp/include
 
-main.o:main.cpp
-	$(CC) $(CPPFLAG) -c main.cpp
+OBJS = main.o source/ApplicationThread.o source/SocketThread.o source/UartThread.o source/UsrProtocol.o source/SystemConfig.o driver/Beep.o driver/Led.o 
+LIB = lib/libjsoncpp.a #链接的库
+APP = app_demo
 
-ApplicationThread.o:source/ApplicationThread.cpp
-	$(CC) $(CPPFLAG) -c source/ApplicationThread.cpp
+LOWERAPP_INC= -I $(LOWERAPP_INC_ROOT)
+INCLUDE_PATH = $(LOWERAPP_INC)
 
-UartThread.o:source/UartThread.cpp
-	$(CC) $(CPPFLAG) -c source/UartThread.cpp
+all : $(APP)
 
-SocketThread.o:source/SocketThread.cpp
-	$(CC) $(CPPFLAG) -c source/SocketThread.cpp
+#生成.o文件 
+%.o : %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@ $(INCLUDE_PATH)
 
-UsrProtocol.o:source/UsrProtocol.cpp
-	$(CC) $(CPPFLAG) -c source/UsrProtocol.cpp
+#生成文件
+$(APP) : $(OBJS)
+	$(CC) -o $(APP) $(OBJS) $(LIB) $(CFLAGS)
+	rm -f $(OBJS)
 
-Led.o:driver/Led.cpp
-	$(CC) $(CPPFLAG) -c driver/Led.cpp
+tags :
+	ctags -R *
 
-Beep.o:driver/Beep.cpp
-	$(CC) $(CPPFLAG) -c driver/Beep.cpp
-
-.PHYONE: clean
 clean:
-	rm -rf $(TARGET) *.o
+	rm -f $(OBJS) $(TARGET) $(APP)
+

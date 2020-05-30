@@ -199,7 +199,7 @@ int CApplicationReg::RefreshAllDevice(void)
                 {
                     break;
                 }
-                else if(device_cmd&0x01 != 0)
+                else if((device_cmd&0x01) != 0)
                 {
                     switch(nIndex)
                     {
@@ -207,7 +207,7 @@ int CApplicationReg::RefreshAllDevice(void)
                             LedStatusConvert(pRegVal[2]&0x01);
                         break;
                         case DEVICE_BEEP:
-                            BeepStatusCovert((pRegVal[2]>>1)&0x01);
+                            BeepStatusConvert((pRegVal[2]>>1)&0x01);
                         break;
                         case DEVICE_REBOOT:
                             system("reboot");

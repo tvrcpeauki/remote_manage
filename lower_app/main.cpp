@@ -13,10 +13,10 @@
  * @addtogroup IMX6ULL
  */
 /*@{*/
-
 #include "include/UartThread.h"
 #include "include/ApplicationThread.h"
 #include "include/SocketThread.h"
+#include "include/SystemConfig.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -37,7 +37,9 @@
 /**************************************************************************
 * Local Function Declaration
 ***************************************************************************/
+#if __SYSTEM_DEBUG == 1
 static void SystemTest(void);
+#endif
 
 /**************************************************************************
 * Function
@@ -57,10 +59,15 @@ int main(int argc, char* argv[])
     result = daemon(1, 1);
 	if(result < 0)
 	{
-		perror("daemon\n");
+		USR_DEBUG("daemon\n");
 		return result;
 	}
 	
+	if(system_config_init() != EXIT_SUCCESS)
+	{
+		USR_DEBUG("system config read fail, use default\n");
+	}
+
 	/*任务创建*/
 #if __SYSTEM_DEBUG == 0
 	UartThreadInit();

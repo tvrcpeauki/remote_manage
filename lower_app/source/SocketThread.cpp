@@ -16,6 +16,7 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include "../include/SystemConfig.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -83,11 +84,15 @@ static void *SocketLoopThread(void *arg)
     int server_fd;
     int result;
     struct sockaddr_in serverip, clientip;
+    int is_bind_fail = 0;
+    struct SSystemConfig *pSystemConfigInfo;
+	
+	pSystemConfigInfo = GetSSytemConfigInfo();
 
     memset((char *)&serverip, 0, sizeof(serverip));
     serverip.sin_family = AF_INET;
-    serverip.sin_port = htons(PORT);
-    serverip.sin_addr.s_addr = inet_addr(IP_ADDR);
+    serverip.sin_port = htons(pSystemConfigInfo->m_net_port);
+    serverip.sin_addr.s_addr = inet_addr(pSystemConfigInfo->m_ipaddr.c_str());
 
     server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd != -1)
@@ -98,7 +103,11 @@ static void *SocketLoopThread(void *arg)
             result = bind(server_fd, (struct sockaddr *)&serverip, sizeof(serverip));
             if(result == -1)
             {
-                SOCKET_DEBUG("socket bind failed!\r\n");
+                if(is_bind_fail == 0)
+                {
+                    is_bind_fail = 1;
+                    SOCKET_DEBUG("socket bind failed!\r\n");
+                }
                 sleep(1);
             }
             else

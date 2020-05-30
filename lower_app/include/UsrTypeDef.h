@@ -60,7 +60,7 @@ typedef unsigned int uint32_t;
 #define BEEP_DEVICE "/dev/beep"
 
 //IPAddress
-#define IP_ADDR     "192.168.1.251"
+#define IP_ADDR     "127.0.0.1"
 #define PORT        8000
 
 //UART

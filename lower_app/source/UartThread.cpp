@@ -15,7 +15,7 @@
 /*@{*/
 
 #include "../include/UartThread.h"
-
+#include "../include/SystemConfig.h"
 
 /**************************************************************************
 * Local Macro Definition
@@ -42,7 +42,7 @@ static uint8_t 	nComFd;
 * Local Function
 ***************************************************************************/
 static void *UartLoopThread(void *arg);
-static int set_opt(int, int, int, char, int);
+static int set_opt(int, int, int, std::string, int);
 
 /**************************************************************************
 * Function
@@ -58,6 +58,9 @@ void UartThreadInit(void)
 {
 	int nErr;
 	pthread_t tid1;
+	struct SSystemConfig *pSystemConfigInfo;
+	
+	pSystemConfigInfo = GetSSytemConfigInfo();
 
 	if((nComFd = open(TTY_DEVICE, O_RDWR|O_NOCTTY|O_NDELAY))<0)
 	{	
@@ -66,7 +69,7 @@ void UartThreadInit(void)
 	}
 	else
 	{
-		set_opt(nComFd, BAUD, DATABITS, PARITY, STOPBITS);
+		set_opt(nComFd, pSystemConfigInfo->m_baud, pSystemConfigInfo->m_data_bits, pSystemConfigInfo->m_parity, pSystemConfigInfo->m_stop_bits);
 		USR_DEBUG("Open %s Success!\t\n", TTY_DEVICE);
 	}
 
@@ -108,6 +111,7 @@ static void *UartLoopThread(void *arg)
 			usleep(50); //通讯结束让出线程
 		}
 	}
+	return (void *)0;
 }
 
 /**
@@ -121,7 +125,7 @@ static void *UartLoopThread(void *arg)
  *  
  * @return NULL
  */
-static int set_opt(int nFd, int nBaud, int nDataBits, char cParity, int nStopBits)
+static int set_opt(int nFd, int nBaud, int nDataBits, std::string cParity, int nStopBits)
 {
 	struct termios newtio;
 	struct termios oldtio;
@@ -147,7 +151,7 @@ static int set_opt(int nFd, int nBaud, int nDataBits, char cParity, int nStopBit
 			break;
 	}
 
-	switch(cParity)
+	switch(cParity[0])
 	{
 		case 'O':
 		case 'o':
@@ -167,7 +171,7 @@ static int set_opt(int nFd, int nBaud, int nDataBits, char cParity, int nStopBit
 			break;
 	}
 
-	switch( nBaud )
+	switch(nBaud)
 	{
 		case 2400:
 			cfsetispeed(&newtio, B2400);

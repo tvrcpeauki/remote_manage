@@ -35,5 +35,5 @@
 /**************************************************************************
 * Global Functon Declaration
 ***************************************************************************/
-void BeepStatusCovert(uint8_t nBeepStatus);
+void BeepStatusConvert(uint8_t nBeepStatus);
 #endif

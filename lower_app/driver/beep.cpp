@@ -49,7 +49,7 @@
  *  
  * @return NULL
  */
-void BeepStatusCovert(uint8_t nBeepStatus)
+void BeepStatusConvert(uint8_t nBeepStatus)
 {
     int nFd;
     uint8_t nVal;
