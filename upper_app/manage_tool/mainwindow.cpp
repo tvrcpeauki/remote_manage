@@ -192,6 +192,14 @@ void MainWindow::on_btn_beep_off_clicked()
         CmdSendBuffer(pCmdInfo->m_pbuffer, pCmdInfo->m_nSize, false);
 }
 
+//复位设备
+void MainWindow::on_btn_reboot_clicked()
+{
+    SCommandInfo *pCmdInfo = GetCommandPtr(DEV_REBOOT_CMD);
+    if(pCmdInfo != nullptr)
+        CmdSendBuffer(pCmdInfo->m_pbuffer, pCmdInfo->m_nSize, false);
+}
+
 //指令直接发送的命令
 void MainWindow::on_btn_send_cmd_clicked()
 {
@@ -325,3 +333,4 @@ void MainWindow::on_btn_socket_close_clicked()
     append_text_edit_test(QString::fromLocal8Bit("socket close!"));
     protocol_flag = PROTOCOL_NULL;
 }
+

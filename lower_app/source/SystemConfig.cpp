@@ -68,11 +68,11 @@ static SSystemConfig SSysConifg = {
  *  
  * @return 硬件配置处理的结果
  */
-int system_config_init(void)
+int system_config_init(std::string sConfigfile)
 {
     Json::Value root;
     std::ifstream ifs;
-    ifs.open("config.json");
+    ifs.open(sConfigfile.c_str());
 
     Json::CharReaderBuilder builder;
     builder["collectComments"] = true;
@@ -95,7 +95,7 @@ int system_config_init(void)
 
     //硬件状态
     SSysConifg.m_led0_status = root["Led0"].asInt();
-    SSysConifg.m_beep0_status = root["Led1"].asInt();
+    SSysConifg.m_beep0_status = root["Beep0"].asInt();
 
     LedStatusConvert((uint8_t)SSysConifg.m_led0_status);
     BeepStatusConvert((uint8_t)SSysConifg.m_beep0_status);

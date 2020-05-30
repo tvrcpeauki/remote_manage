@@ -55,6 +55,7 @@ static void SystemTest(void);
 int main(int argc, char* argv[])
 {
     int result = 0;
+	std::string sConfigFile;
 
     result = daemon(1, 1);
 	if(result < 0)
@@ -63,7 +64,18 @@ int main(int argc, char* argv[])
 		return result;
 	}
 	
-	if(system_config_init() != EXIT_SUCCESS)
+	//选中配置文件
+	if(argc == 2)
+	{
+		sConfigFile = std::string(argv[1]);
+	}
+	else
+	{
+		sConfigFile = std::string("config.js");
+	}
+	USR_DEBUG("config file:%s\n", sConfigFile.c_str());
+
+	if(system_config_init(sConfigFile) != EXIT_SUCCESS)
 	{
 		USR_DEBUG("system config read fail, use default\n");
 	}

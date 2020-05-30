@@ -561,7 +561,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>192.168.93.1</string>
+      <string>192.168.1.251</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_port">
@@ -624,7 +624,7 @@
      <x>0</x>
      <y>0</y>
      <width>710</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

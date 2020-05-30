@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -36,6 +36,8 @@ private slots:
     void on_btn_socket_open_clicked();
 
     void on_btn_socket_close_clicked();
+
+    void on_btn_reboot_clicked();
 
 private:
     Ui::MainWindow *ui;

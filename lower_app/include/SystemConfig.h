@@ -52,6 +52,6 @@ struct SSystemConfig
 /**************************************************************************
 * Global Functon Declaration
 ***************************************************************************/
-int system_config_init(void);
+int system_config_init(std::string sConfigfile);
 SSystemConfig *GetSSytemConfigInfo(void);
 #endif

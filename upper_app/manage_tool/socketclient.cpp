@@ -92,15 +92,20 @@ void CClientSocketThread::run()
             pTcpSocket->connectToHost(*pCTcpClientSocketInfo->serverIP, pCTcpClientSocketInfo->m_nPort);
             nLen = pCTcpClientSocketInfo->CreateSendBuffer(pCTcpClientSocketInfo->GetId(), SendBufferInfo.m_nSize,
                                                            SendBufferInfo.m_pBuffer, SendBufferInfo.m_IsWriteThrough);
-            is_connect = pTcpSocket->waitForConnected();
+            is_connect = pTcpSocket->waitForConnected(300);
             if(is_connect)
             {
+                emit send_edit_test(QString("socket client ok\n"));
                 pCTcpClientSocketInfo->DeviceWrite(tx_buffer, nLen);
 
                 //通知主线程更新窗口
                 SendBuf = byteArrayToHexString("Sendbuf:", tx_buffer, nLen, "\n");
                 emit send_edit_test(SendBuf);
                 pTcpSocket->waitForBytesWritten();
+            }
+            else
+            {
+                emit send_edit_test(QString("socket client fail\n"));
             }
             qDebug()<<"thread queue test OK\n";
         }
